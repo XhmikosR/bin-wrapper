@@ -13,7 +13,7 @@
 		"url": "https://github.com/kevva"
 	},
 	"engines": {
-		"node": "^14.14.0 || >=16.0.0"
+		"node": ">=16"
 	},
 	"scripts": {
 		"ava": "ava",
@@ -39,17 +39,17 @@
 	],
 	"dependencies": {
 		"@xhmikosr/bin-check": "^6.0.0",
-		"@xhmikosr/downloader": "^13.0.1",
+		"@xhmikosr/downloader": "^14.0.0",
 		"bin-version-check": "^5.1.0",
 		"os-filter-obj": "^2.0.0"
 	},
 	"devDependencies": {
-		"ava": "^4.3.3",
-		"c8": "^8.0.0",
+		"ava": "^5.3.1",
+		"c8": "^8.0.1",
 		"isexe": "^2.0.0",
-		"nock": "^13.3.2",
+		"nock": "^13.4.0",
 		"path-exists": "^5.0.0",
 		"tempy": "^3.1.0",
-		"xo": "^0.54.2"
+		"xo": "^0.56.0"
 	}
 }
