@@ -1,6 +1,6 @@
 {
 	"name": "@xhmikosr/bin-wrapper",
-	"version": "11.0.2",
+	"version": "12.0.0",
 	"description": "Binary wrapper that makes your programs seamlessly available as local dependencies",
 	"license": "MIT",
 	"repository": "XhmikosR/bin-wrapper",
