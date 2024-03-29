@@ -2,7 +2,7 @@ import fs, {promises as fsP} from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import {fileURLToPath} from 'node:url';
-import isexe from 'isexe';
+import {isexe} from 'isexe';
 import nock from 'nock';
 import {pathExists} from 'path-exists';
 import {temporaryDirectory} from 'tempy';
