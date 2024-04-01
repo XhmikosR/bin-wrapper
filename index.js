@@ -17,6 +17,7 @@ export default class BinWrapper {
 
 		if (this.options.strip <= 0) {
 			this.options.strip = 0;
+		// eslint-disable-next-line logical-assignment-operators
 		} else if (!this.options.strip) {
 			this.options.strip = 1;
 		}
@@ -35,7 +36,7 @@ export default class BinWrapper {
 			return this._src;
 		}
 
-		this._src = this._src || [];
+		this._src ||= [];
 		this._src.push({url: src, os, arch});
 
 		return this;
