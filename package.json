@@ -40,8 +40,8 @@
 	"dependencies": {
 		"@xhmikosr/bin-check": "^6.0.0",
 		"@xhmikosr/downloader": "^14.0.0",
-		"bin-version-check": "^5.1.0",
-		"os-filter-obj": "^2.0.0"
+		"@xhmikosr/os-filter-obj": "^3.0.0",
+		"bin-version-check": "^5.1.0"
 	},
 	"devDependencies": {
 		"ava": "^5.3.1",

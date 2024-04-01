@@ -3,7 +3,7 @@ import path from 'node:path';
 import binCheck from '@xhmikosr/bin-check';
 import binVersionCheck from 'bin-version-check';
 import download from '@xhmikosr/downloader';
-import osFilterObject from 'os-filter-obj';
+import osFilterObject from '@xhmikosr/os-filter-obj';
 
 /**
  * Initialize a new `BinWrapper`
