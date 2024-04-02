@@ -14,12 +14,10 @@ import osFilterObject from '@xhmikosr/os-filter-obj';
 export default class BinWrapper {
 	constructor(options = {}) {
 		this.options = options;
+		this.options.strip ??= 1;
 
 		if (this.options.strip <= 0) {
 			this.options.strip = 0;
-		// eslint-disable-next-line logical-assignment-operators
-		} else if (!this.options.strip) {
-			this.options.strip = 1;
 		}
 	}
 
