@@ -4,6 +4,7 @@ import binCheck from '@xhmikosr/bin-check';
 import binVersionCheck from 'bin-version-check';
 import download from '@xhmikosr/downloader';
 import osFilterObject from '@xhmikosr/os-filter-obj';
+import semver from 'semver';
 
 /**
  * Initialize a new `BinWrapper`
@@ -81,6 +82,10 @@ export default class BinWrapper {
 	version(range) {
 		if (arguments.length === 0) {
 			return this._version;
+		}
+
+		if (!semver.validRange(range)) {
+			throw new Error(`Invalid version range: "${range}"`);
 		}
 
 		this._version = range;

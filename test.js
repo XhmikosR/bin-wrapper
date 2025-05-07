@@ -161,3 +161,13 @@ test('downloaded files are set to be executable', async t => {
 	await t.true(files.every(async file => isexe(path.join(bin.dest(), file))));
 	await removeDir(temporaryDir);
 });
+
+test('test semver ranges', t => {
+	const bin = new BinWrapper();
+
+	t.throws(() => bin.version('not a semver range'), {
+		message: 'Invalid version range: "not a semver range"',
+	});
+
+	t.notThrows(() => bin.version('^1.0.0'));
+});
