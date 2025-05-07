@@ -227,3 +227,13 @@ test('tolerate a non-archive file saved under a different name than the URL', as
 		await removeDir(temporaryDir);
 	}
 });
+
+test('test semver ranges', t => {
+	const bin = new BinWrapper();
+
+	t.throws(() => bin.version('not a semver range'), {
+		message: 'Invalid version range: "not a semver range"',
+	});
+
+	t.notThrows(() => bin.version('^1.0.0'));
+});
