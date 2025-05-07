@@ -44,7 +44,8 @@
 		"@xhmikosr/bin-check": "^8.2.2",
 		"@xhmikosr/downloader": "^16.3.1",
 		"@xhmikosr/os-filter-obj": "^4.1.0",
-		"binary-version-check": "^6.1.0"
+		"binary-version-check": "^6.1.0",
+		"semver": "^7.8.5"
 	},
 	"devDependencies": {
 		"@felipecrs/decompress-tarxz": "^5.0.6",
