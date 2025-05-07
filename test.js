@@ -37,27 +37,27 @@ test('expose a constructor', t => {
 
 test('add a source', t => {
 	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
-	t.is(bin._src[0].url, 'http://foo.com/bar.tar.gz');
+	t.is(bin.src()[0].url, 'http://foo.com/bar.tar.gz');
 });
 
 test('add a source to a specific os', t => {
 	const bin = new BinWrapper().src('http://foo.com', process.platform);
-	t.is(bin._src[0].os, process.platform);
+	t.is(bin.src()[0].os, process.platform);
 });
 
 test('set destination directory', t => {
 	const bin = new BinWrapper().dest(path.join(__dirname, 'foo'));
-	t.is(bin._dest, path.join(__dirname, 'foo'));
+	t.is(bin.dest(), path.join(__dirname, 'foo'));
 });
 
 test('set which file to use as the binary', t => {
 	const bin = new BinWrapper().use('foo');
-	t.is(bin._use, 'foo');
+	t.is(bin.use(), 'foo');
 });
 
 test('set a version range to test against', t => {
 	const bin = new BinWrapper().version('1.0.0');
-	t.is(bin._version, '1.0.0');
+	t.is(bin.version(), '1.0.0');
 });
 
 test('get the binary path', t => {
@@ -65,7 +65,7 @@ test('get the binary path', t => {
 		.dest('tmp')
 		.use('foo');
 
-	t.is(bin.path(), path.join('tmp', 'foo'));
+	t.is(bin.path(), path.join(__dirname, 'tmp', 'foo'));
 });
 
 test('verify that a binary is working', async t => {
@@ -152,6 +152,33 @@ test('downloaded files are set to be executable', async t => {
 
 	const files = fs.readdirSync(bin.dest());
 
-	await t.true(files.every(async file => isexe(path.join(bin.dest(), file))));
+	t.true(files.every(async file => isexe(path.join(bin.dest(), file))));
 	await removeDirs([temporaryDir]);
+});
+
+test('reject invalid URL in src()', t => {
+	const bin = new BinWrapper();
+	t.throws(() => bin.src('invalid-url'), {message: 'Invalid URL: invalid-url'});
+});
+
+test('reject unsupported protocol in src()', t => {
+	const bin = new BinWrapper();
+	t.throws(() => bin.src('ftp://foo.com/bar.tar.gz'), {message: 'Invalid URL: ftp://foo.com/bar.tar.gz'});
+});
+
+test('reject directory traversal in path()', t => {
+	const bin = new BinWrapper()
+		.dest('/tmp')
+		.use('../binary');
+	t.throws(() => bin.path(), {message: 'Invalid binary path: Directory traversal detected'});
+});
+
+test('reject invalid semver ranges', t => {
+	const bin = new BinWrapper();
+
+	t.throws(() => bin.version('not a semver range'), {
+		message: 'Invalid version range: not a semver range',
+	});
+
+	t.notThrows(() => bin.version('^1.0.0'));
 });
