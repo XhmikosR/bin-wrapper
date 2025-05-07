@@ -163,10 +163,7 @@ export default class BinWrapper {
 			);
 		}
 
-		const urls = [];
-		for (const file of files) {
-			urls.push(file.url);
-		}
+		const urls = files.map(file => file.url);
 
 		return Promise.all(
 			urls.map(url =>
