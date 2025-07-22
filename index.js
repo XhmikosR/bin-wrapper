@@ -1,7 +1,7 @@
 import {promises as fs} from 'node:fs';
 import path from 'node:path';
 import binCheck from '@xhmikosr/bin-check';
-import binaryVersionCheck from 'binary-version-check';
+import binVersionCheck from 'bin-version-check';
 import download from '@xhmikosr/downloader';
 import osFilterObject from '@xhmikosr/os-filter-obj';
 
@@ -127,7 +127,7 @@ export default class BinWrapper {
 			}
 
 			if (this.version()) {
-				return binaryVersionCheck(this.path(), this.version());
+				return binVersionCheck(this.path(), this.version());
 			}
 		});
 	}

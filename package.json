@@ -44,7 +44,7 @@
 		"@xhmikosr/bin-check": "^7.0.3",
 		"@xhmikosr/downloader": "^15.0.2",
 		"@xhmikosr/os-filter-obj": "^3.0.0",
-		"binary-version-check": "^6.1.0"
+		"bin-version-check": "^5.1.0"
 	},
 	"devDependencies": {
 		"ava": "~6.2.0",
