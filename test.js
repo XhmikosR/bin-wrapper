@@ -15,9 +15,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join.bind(path, __dirname, 'fixtures');
 const binary = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle';
 
-const removeDirs = dirs => Promise.all(
-	dirs.map(dir => fsP.rm(dir, {force: true, recursive: true})),
-);
+async function safeRemoveDir(dir, retries = 3) {
+	for (let i = 0; i < retries; i++) {
+		try {
+			await fsP.rm(dir, {force: true, recursive: true});
+			break;
+		} catch (error) {
+			if (error.code === 'EPERM' && i < retries - 1) {
+				 // Wait a bit and retry
+				await new Promise(res => setTimeout(res, 100));
+			} else {
+				throw error;
+			}
+		}
+	}
+}
+
+const removeDirs = dirs => Promise.all(dirs.map(dir => safeRemoveDir(dir)));
 
 test.beforeEach(() => {
 	nock('http://foo.com')
