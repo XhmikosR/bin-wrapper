@@ -18,12 +18,16 @@ const binary = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle';
 async function safeRemoveDir(dir, retries = 3) {
 	for (let i = 0; i < retries; i++) {
 		try {
+			// eslint-disable-next-line no-await-in-loop
 			await fsP.rm(dir, {force: true, recursive: true});
 			break;
 		} catch (error) {
 			if (error.code === 'EPERM' && i < retries - 1) {
-				 // Wait a bit and retry
-				await new Promise(res => setTimeout(res, 100));
+				// Wait a bit and retry
+				// eslint-disable-next-line no-await-in-loop
+				await new Promise(resolve => {
+					setTimeout(resolve, 100)
+				});
 			} else {
 				throw error;
 			}
