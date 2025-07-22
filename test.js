@@ -16,7 +16,10 @@ const fixture = path.join.bind(path, __dirname, 'fixtures');
 const binary = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle';
 
 async function safeRemoveDir(dir, retries = 3) {
-	if (process.platform === 'win32') {
+	if (process.platform !== 'win32') {
+		// Directly remove the directory on non-Windows platforms
+		await fsP.rm(dir, {force: true, recursive: true});
+	} else {
 		// Retry logic only for Windows
 		for (let i = 0; i < retries; i++) {
 			try {
@@ -35,9 +38,6 @@ async function safeRemoveDir(dir, retries = 3) {
 				}
 			}
 		}
-	} else {
-		// Directly remove the directory on non-Windows platforms
-		await fsP.rm(dir, {force: true, recursive: true});
 	}
 }
 
