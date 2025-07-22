@@ -26,7 +26,7 @@ async function safeRemoveDir(dir, retries = 3) {
 				// Wait a bit and retry
 				// eslint-disable-next-line no-await-in-loop
 				await new Promise(resolve => {
-					setTimeout(resolve, 100)
+					setTimeout(resolve, 100);
 				});
 			} else {
 				throw error;
