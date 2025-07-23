@@ -63,6 +63,13 @@ Whether to skip the binary check or not.
 
 Strip a number of leading paths from file names on extraction.
 
+##### allowedProtocols
+
+* Type: `string[]`
+* Default: `['http:', 'https:']`
+
+URL protocols accepted by `.src()`. Pass a custom list (e.g. `['https:']` to enforce TLS, or include `'ftp:'` for a private mirror) to override the default. Protocols must be in [URL protocol form](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol), including the trailing colon.
+
 ### .src(url, [os], [arch])
 
 Adds a source to download.

@@ -251,3 +251,20 @@ test('test semver ranges', t => {
 
 	t.notThrows(() => bin.version('^1.0.0'));
 });
+
+test('reject invalid URL in src()', t => {
+	const bin = new BinWrapper();
+	t.throws(() => bin.src('invalid-url'), {message: 'Invalid URL: invalid-url'});
+});
+
+test('accept a custom protocol via allowedProtocols option', t => {
+	const bin = new BinWrapper({allowedProtocols: ['ftp:']});
+	t.notThrows(() => bin.src('ftp://foo.com/bar.tar.gz'));
+	t.is(bin.src()[0].url, 'ftp://foo.com/bar.tar.gz');
+});
+
+test('default protocol allowlist rejects ftp but allows https', t => {
+	const bin = new BinWrapper();
+	t.throws(() => bin.src('ftp://foo.com/bar.tar.gz'), {message: 'Invalid protocol: ftp:'});
+	t.notThrows(() => bin.src('https://foo.com/bar.tar.gz'));
+});
