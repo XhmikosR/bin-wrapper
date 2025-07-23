@@ -15,33 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join.bind(path, __dirname, 'fixtures');
 const binary = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle';
 
-async function safeRemoveDir(dir, retries = 3) {
-	if (process.platform === 'win32') {
-		// Retry logic only for Windows
-		for (let i = 0; i < retries; i++) {
-			try {
-				// eslint-disable-next-line no-await-in-loop
-				await fsP.rm(dir, {force: true, recursive: true});
-				break;
-			} catch (error) {
-				if (error.code === 'EPERM' && i < retries - 1) {
-					// Wait a bit and retry
-					// eslint-disable-next-line no-await-in-loop
-					await new Promise(resolve => {
-						setTimeout(resolve, 100);
-					});
-				} else {
-					throw error;
-				}
-			}
-		}
-	} else {
-		// Directly remove the directory on non-Windows platforms
-		await fsP.rm(dir, {force: true, recursive: true});
-	}
-}
-
-const removeDirs = dirs => Promise.all(dirs.map(dir => safeRemoveDir(dir)));
+const removeDir = async dir => fsP.rm(dir, {force: true, recursive: true});
 
 test.beforeEach(() => {
 	nock('http://foo.com')
@@ -101,7 +75,7 @@ test('verify that a binary is working', async t => {
 
 	await bin.run();
 	t.true(await pathExists(bin.path()));
-	await removeDirs([bin.dest(), temporaryDir]);
+	await removeDir(bin.dest());
 });
 
 test('meet the desired version', async t => {
@@ -114,7 +88,7 @@ test('meet the desired version', async t => {
 
 	await bin.run();
 	t.true(await pathExists(bin.path()));
-	await removeDirs([bin.dest(), temporaryDir]);
+	await removeDir(bin.dest());
 });
 
 test('download files even if they are not used', async t => {
@@ -134,7 +108,7 @@ test('download files even if they are not used', async t => {
 	t.is(files[1], 'gifsicle.exe');
 	t.is(files[2], 'test.js');
 
-	await removeDirs([bin.dest(), temporaryDir]);
+	await removeDir(bin.dest());
 });
 
 test('skip running binary check', async t => {
@@ -146,7 +120,7 @@ test('skip running binary check', async t => {
 
 	await bin.run(['--shouldNotFailAnyway']);
 	t.true(await pathExists(bin.path()));
-	await removeDirs([bin.dest(), temporaryDir]);
+	await removeDir(bin.dest());
 });
 
 test('error if no binary is found and no source is provided', async t => {
@@ -160,7 +134,7 @@ test('error if no binary is found and no source is provided', async t => {
 		undefined,
 		'No binary found matching your system. It\'s probably not supported.',
 	);
-	await removeDirs([temporaryDir]);
+	await removeDir(temporaryDir);
 });
 
 test('downloaded files are set to be executable', async t => {
@@ -177,5 +151,5 @@ test('downloaded files are set to be executable', async t => {
 	const files = fs.readdirSync(bin.dest());
 
 	await t.true(files.every(async file => isexe(path.join(bin.dest(), file))));
-	await removeDirs([temporaryDir]);
+	await removeDir(temporaryDir);
 });
