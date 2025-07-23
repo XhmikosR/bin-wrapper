@@ -10,6 +10,7 @@ import semver from 'semver';
  * @typedef {Object} BinWrapperOptions
  * @property {number} [strip=1] - Number of leading paths to strip from the archive.
  * @property {boolean} [skipCheck=false] - Skip binary checks.
+ * @property {string[]} [allowedProtocols=['http:','https:']] - URL protocols accepted by `src()`.
  */
 
 /**
@@ -24,11 +25,12 @@ export default class BinWrapper {
 	 * @param {BinWrapperOptions} [options]
 	 */
 	constructor(options = {}) {
-		const {strip = 1, skipCheck = false} = options;
+		const {strip = 1, skipCheck = false, allowedProtocols = ['http:', 'https:']} = options;
 
 		this.options = {
 			strip: Math.max(0, strip),
 			skipCheck,
+			allowedProtocols,
 		};
 	}
 
@@ -43,6 +45,17 @@ export default class BinWrapper {
 	src(src, os, arch) {
 		if (arguments.length === 0) {
 			return this._src;
+		}
+
+		let parsed;
+		try {
+			parsed = new URL(src);
+		} catch {
+			throw new Error(`Invalid URL: ${src}`);
+		}
+
+		if (!this.options.allowedProtocols.includes(parsed.protocol)) {
+			throw new Error(`Invalid protocol: ${parsed.protocol}`);
 		}
 
 		this._src ||= [];
