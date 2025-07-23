@@ -41,10 +41,10 @@
 		"wrapper"
 	],
 	"dependencies": {
-		"@xhmikosr/bin-check": "^7.1.0",
-		"@xhmikosr/downloader": "^15.2.0",
+		"@xhmikosr/bin-check": "github:XhmikosR/bin-check#xmr/deps",
+		"@xhmikosr/downloader": "github:XhmikosR/download#xmr/deps",
 		"@xhmikosr/os-filter-obj": "^3.0.0",
-		"bin-version-check": "^5.1.0"
+		"binary-version-check": "^6.1.0"
 	},
 	"devDependencies": {
 		"ava": "~6.2.0",
