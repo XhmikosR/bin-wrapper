@@ -171,3 +171,13 @@ test('test semver ranges', t => {
 
 	t.notThrows(() => bin.version('^1.0.0'));
 });
+
+test('reject invalid URL in src()', t => {
+	const bin = new BinWrapper();
+	t.throws(() => bin.src('invalid-url'), {message: 'Invalid URL: invalid-url'});
+});
+
+test('reject unsupported protocol in src()', t => {
+	const bin = new BinWrapper();
+	t.throws(() => bin.src('ftp://foo.com/bar.tar.gz'), {message: 'Invalid URL: ftp://foo.com/bar.tar.gz'});
+});
