@@ -1,4 +1,4 @@
-# bin-wrapper [![CI](https://github.com/XhmikosR/bin-wrapper/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/XhmikosR/bin-wrapper/actions/workflows/ci.yml)
+# bin-wrapper [![npm version](https://img.shields.io/npm/v/@xhmikosr/bin-wrapper?logo=npm&logoColor=fff)](https://www.npmjs.com/package/@xhmikosr/bin-wrapper) [![CI Status](https://img.shields.io/github/actions/workflow/status/XhmikosR/bin-wrapper/ci.yml?branch=master&label=CI&logo=github)](https://github.com/XhmikosR/bin-wrapper/actions/workflows/ci.yml?query=branch%3Amaster)
 
 > Binary wrapper that makes your programs seamlessly available as local dependencies
 
