@@ -11,6 +11,7 @@ import semver from 'semver';
  * @property {number} [strip=1] - Number of leading paths to strip from the archive.
  * @property {boolean} [skipCheck=false] - Skip binary checks.
  * @property {object} [decompress={}] - Extra options forwarded to @xhmikosr/decompress (e.g. `{ plugins: [...] }`). The `strip` key here is ignored; use the top-level `strip` option.
+ * @property {string[]} [allowedProtocols=['http:','https:']] - URL protocols accepted by `src()`.
  */
 
 /**
@@ -26,12 +27,13 @@ export default class BinWrapper {
 	 * @param {BinWrapperOptions} [options]
 	 */
 	constructor(options = {}) {
-		const {strip = 1, skipCheck = false, decompress = {}} = options;
+		const {strip = 1, skipCheck = false, decompress = {}, allowedProtocols = ['http:', 'https:']} = options;
 
 		this.options = {
 			strip: Math.max(0, strip),
 			skipCheck,
 			decompress: {...decompress},
+			allowedProtocols,
 		};
 	}
 
@@ -47,6 +49,17 @@ export default class BinWrapper {
 	src(src, os, arch, hash) {
 		if (arguments.length === 0) {
 			return this._src;
+		}
+
+		let parsed;
+		try {
+			parsed = new URL(src);
+		} catch {
+			throw new Error(`Invalid URL: ${src}`);
+		}
+
+		if (!this.options.allowedProtocols.includes(parsed.protocol)) {
+			throw new Error(`Invalid protocol: ${parsed.protocol}`);
 		}
 
 		this._src ||= [];

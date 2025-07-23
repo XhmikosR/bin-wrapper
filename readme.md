@@ -71,6 +71,13 @@ Strip a number of leading paths from file names on extraction.
 Extra options forwarded to [`@xhmikosr/decompress`](https://github.com/XhmikosR/decompress) e.g. `plugins`.
 The `strip` key is ignored here; use the top-level `strip` option instead.
 
+##### allowedProtocols
+
+* Type: `string[]`
+* Default: `['http:', 'https:']`
+
+URL protocols accepted by `.src()`. Pass a custom list (e.g. `['https:']` to enforce TLS, or include `'ftp:'` for a private mirror) to override the default. Protocols must be in [URL protocol form](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol), including the trailing colon.
+
 ### .src(url, [os], [arch], [hash])
 
 Adds a source to download.
