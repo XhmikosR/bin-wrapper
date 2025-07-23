@@ -37,6 +37,16 @@ export default class BinWrapper {
 			return this._src;
 		}
 
+		try {
+			const url = new URL(src);
+			const allowedProtocols = ['http:', 'https:'];
+			if (!allowedProtocols.includes(url.protocol)) {
+				throw new Error(`Invalid protocol: ${url.protocol}`);
+			}
+		} catch {
+			throw new Error(`Invalid URL: ${src}`);
+		}
+
 		this._src ||= [];
 		this._src.push({url: src, os, arch});
 
