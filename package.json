@@ -42,7 +42,7 @@
 	],
 	"dependencies": {
 		"@xhmikosr/bin-check": "^7.1.0",
-		"@xhmikosr/downloader": "^15.1.0",
+		"@xhmikosr/downloader": "^15.1.1",
 		"@xhmikosr/os-filter-obj": "^3.0.0",
 		"bin-version-check": "^5.1.0"
 	},
