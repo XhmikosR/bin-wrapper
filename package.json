@@ -41,11 +41,11 @@
 		"wrapper"
 	],
 	"dependencies": {
-		"@xhmikosr/bin-check": "github:XhmikosR/bin-check#xmr/deps",
 		"@xhmikosr/decompress": "github:XhmikosR/decompress#xmr/deps",
 		"@xhmikosr/downloader": "github:XhmikosR/download#xmr/deps",
 		"@xhmikosr/os-filter-obj": "^3.0.0",
-		"binary-version-check": "^6.1.0"
+		"binary-version-check": "^6.1.0",
+		"execa": "^8.0.1"
 	},
 	"devDependencies": {
 		"ava": "~6.2.0",

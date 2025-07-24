@@ -1,8 +1,9 @@
 import {promises as fs} from 'node:fs';
 import path from 'node:path';
-import binCheck from '@xhmikosr/bin-check';
 import binaryVersionCheck from 'binary-version-check';
 import download from '@xhmikosr/downloader';
+import {execa} from 'execa';
+import isexe from 'isexe';
 import osFilterObject from '@xhmikosr/os-filter-obj';
 
 /**
@@ -119,17 +120,20 @@ export default class BinWrapper {
 	 * @api private
 	 */
 	runCheck(cmd) {
-		return binCheck(this.path(), cmd).then(works => {
-			if (!works) {
-				throw new Error(
-					`The "${this.path()}" binary doesn't seem to work correctly`,
-				);
-			}
+		return isexe(this.path())
+			.then(works => {
+				if (!works) {
+					throw new Error(`The "${this.path()}" binary doesn't seem to work correctly`);
+				}
 
-			if (this.version()) {
-				return binaryVersionCheck(this.path(), this.version());
-			}
-		});
+				return execa(this.path(), cmd);
+			})
+			.then(result => result.exitCode === 0)
+			.then(() => {
+				if (this.version()) {
+					return binaryVersionCheck(this.path(), this.version());
+				}
+			});
 	}
 
 	/**
