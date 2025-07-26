@@ -194,7 +194,7 @@ export default class BinWrapper {
 	 */
 	async findExisting() {
 		try {
-			await fs.stat(this.path());
+			await fs.access(this.path());
 		} catch (error) {
 			if (error?.code === 'ENOENT') {
 				await this.download();
