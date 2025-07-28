@@ -35,27 +35,27 @@ test('expose a constructor', t => {
 
 test('add a source', t => {
 	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
-	t.is(bin._src[0].url, 'http://foo.com/bar.tar.gz');
+	t.is(bin.src()[0].url, 'http://foo.com/bar.tar.gz');
 });
 
 test('add a source to a specific os', t => {
 	const bin = new BinWrapper().src('http://foo.com', process.platform);
-	t.is(bin._src[0].os, process.platform);
+	t.is(bin.src()[0].os, process.platform);
 });
 
 test('set destination directory', t => {
 	const bin = new BinWrapper().dest(path.join(__dirname, 'foo'));
-	t.is(bin._dest, path.join(__dirname, 'foo'));
+	t.is(bin.dest(), path.join(__dirname, 'foo'));
 });
 
 test('set which file to use as the binary', t => {
 	const bin = new BinWrapper().use('foo');
-	t.is(bin._use, 'foo');
+	t.is(bin.use(), 'foo');
 });
 
 test('set a version range to test against', t => {
 	const bin = new BinWrapper().version('1.0.0');
-	t.is(bin._version, '1.0.0');
+	t.is(bin.version(), '1.0.0');
 });
 
 test('get the binary path', t => {
