@@ -71,7 +71,7 @@ test('get the binary path', t => {
 		.dest('tmp')
 		.use('foo');
 
-	t.is(bin.path(), path.join('tmp', 'foo'));
+	t.is(bin.path(), path.join(__dirname, 'tmp', 'foo'));
 });
 
 test('verify that a binary is working', async t => {
@@ -180,4 +180,11 @@ test('reject invalid URL in src()', t => {
 test('reject unsupported protocol in src()', t => {
 	const bin = new BinWrapper();
 	t.throws(() => bin.src('ftp://foo.com/bar.tar.gz'), {message: 'Invalid URL: ftp://foo.com/bar.tar.gz'});
+});
+
+test('reject directory traversal in path()', t => {
+	const bin = new BinWrapper()
+		.dest('/tmp')
+		.use('../binary');
+	t.throws(() => bin.path(), {message: 'Invalid binary path: Directory traversal detected'});
 });
