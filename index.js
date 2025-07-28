@@ -2,39 +2,62 @@ import {promises as fs} from 'node:fs';
 import path from 'node:path';
 import binCheck from '@xhmikosr/bin-check';
 import binVersionCheck from 'bin-version-check';
-import download from '@xhmikosr/downloader';
+import downloader from '@xhmikosr/downloader';
 import osFilterObject from '@xhmikosr/os-filter-obj';
 import semver from 'semver';
 
 /**
+ * @typedef {Object} BinWrapperOptions
+ * @property {number} [strip=1] - Number of leading paths to strip from the archive.
+ * @property {boolean} [skipCheck=false] - Skip binary checks.
+ */
+
+/**
+ * @typedef {Object} SourceFile
+ * @property {string} url - The URL of the file.
+ * @property {string} [os] - The operating system the file is for.
+ * @property {string} [arch] - The architecture the file is for.
+ */
+
+/**
  * Initialize a new `BinWrapper`
  *
- * @param {Object} options
+ * @param {BinWrapperOptions} [options={}] - Options for the BinWrapper instance.
  * @api public
  */
 export default class BinWrapper {
-	constructor(options = {}) {
-		this.options = options;
+	#options;
+	#src;
+	#dest;
+	#use;
+	#version;
 
-		if (this.options.strip <= 0) {
-			this.options.strip = 0;
+	/**
+	 * @param {BinWrapperOptions} [options={}]
+	 */
+	constructor(options = {}) {
+		this.#options = options;
+
+		if (this.#options.strip <= 0) {
+			this.#options.strip = 0;
 		// eslint-disable-next-line logical-assignment-operators
-		} else if (!this.options.strip) {
-			this.options.strip = 1;
+		} else if (!this.#options.strip) {
+			this.#options.strip = 1;
 		}
 	}
 
 	/**
 	 * Get or set files to download
 	 *
-	 * @param {String} src
-	 * @param {String} os
-	 * @param {String} arch
+	 * @param {string} [src] - The source URL of the file.
+	 * @param {string} [os] - The operating system the file is for.
+	 * @param {string} [arch] - The architecture the file is for.
+	 * @returns {SourceFile[]|this} - Returns the source files if no arguments are provided, otherwise returns `this`.
 	 * @api public
 	 */
 	src(src, os, arch) {
 		if (arguments.length === 0) {
-			return this._src;
+			return this.#src;
 		}
 
 		try {
@@ -47,8 +70,8 @@ export default class BinWrapper {
 			throw new Error(`Invalid URL: ${src}`);
 		}
 
-		this._src ||= [];
-		this._src.push({url: src, os, arch});
+		this.#src ||= [];
+		this.#src.push({url: src, os, arch});
 
 		return this;
 	}
@@ -56,154 +79,174 @@ export default class BinWrapper {
 	/**
 	 * Get or set the destination
 	 *
-	 * @param {String} dest
+	 * @param {string} [dest] - The destination path.
+	 * @returns {string|this} - Returns the destination if no arguments are provided, otherwise returns `this`.
 	 * @api public
 	 */
 	dest(dest) {
 		if (arguments.length === 0) {
-			return this._dest;
+			return this.#dest;
 		}
 
-		this._dest = dest;
+		this.#dest = path.resolve(dest);
 		return this;
 	}
 
 	/**
 	 * Get or set the binary
 	 *
-	 * @param {String} bin
+	 * @param {string} [bin] - The binary name.
+	 * @returns {string|this} - Returns the binary name if no arguments are provided, otherwise returns `this`.
 	 * @api public
 	 */
 	use(bin) {
 		if (arguments.length === 0) {
-			return this._use;
+			return this.#use;
 		}
 
-		this._use = bin;
+		this.#use = bin;
 		return this;
 	}
 
 	/**
 	 * Get or set a semver range to test the binary against
 	 *
-	 * @param {String} range
+	 * @param {string} [range] - The semver range.
+	 * @returns {string|this} - Returns the semver range if no arguments are provided, otherwise returns `this`.
 	 * @api public
 	 */
 	version(range) {
 		if (arguments.length === 0) {
-			return this._version;
+			return this.#version;
 		}
 
 		if (!semver.validRange(range)) {
 			throw new Error(`Invalid version range: "${range}"`);
 		}
 
-		this._version = range;
+		this.#version = range;
 		return this;
 	}
 
 	/**
 	 * Get path to the binary
 	 *
+	 * @returns {string} - The full path to the binary.
 	 * @api public
 	 */
 	path() {
-		return path.join(this.dest(), this.use());
+		const resolvedDest = path.resolve(this.dest());
+		const resolvedBinary = path.resolve(resolvedDest, this.use());
+
+		if (!resolvedBinary.startsWith(resolvedDest)) {
+			throw new Error('Invalid binary path: Directory traversal detected');
+		}
+
+		return resolvedBinary;
 	}
 
 	/**
 	 * Run
 	 *
-	 * @param {Array} cmd
+	 * @param {string[]} [cmd=['--version']] - The command to run.
+	 * @returns {Promise<void>} - Resolves when the command completes.
 	 * @api public
 	 */
-	run(cmd = ['--version']) {
-		return this.findExisting().then(() => {
-			if (this.options.skipCheck) {
-				return;
-			}
+	async run(cmd = ['--version']) {
+		await this.#findExisting();
 
-			return this.runCheck(cmd);
-		});
+		if (this.#options.skipCheck) {
+			return;
+		}
+
+		await this.#runCheck(cmd);
 	}
 
 	/**
 	 * Run binary check
 	 *
-	 * @param {Array} cmd
-	 * @api private
+	 * @param {string[]} cmd - The command to run.
+	 * @returns {Promise<void>} - Resolves when the check completes.
 	 */
-	runCheck(cmd) {
-		return binCheck(this.path(), cmd).then(works => {
-			if (!works) {
-				throw new Error(
-					`The "${this.path()}" binary doesn't seem to work correctly`,
-				);
-			}
+	async #runCheck(cmd) {
+		if (!Array.isArray(cmd)) {
+			throw new TypeError('Invalid command: argument must be an array');
+		}
 
-			if (this.version()) {
-				return binVersionCheck(this.path(), this.version());
-			}
-		});
+		const works = await binCheck(this.path(), cmd);
+		if (!works) {
+			throw new Error(
+				`The "${this.path()}" binary doesn't seem to work correctly`,
+			);
+		}
+
+		if (this.version()) {
+			await binVersionCheck(this.path(), this.version());
+		}
 	}
 
 	/**
 	 * Find existing files
 	 *
-	 * @api private
+	 * @returns {Promise<void>} - Resolves when the files are found or downloaded.
 	 */
-	findExisting() {
-		return fs.stat(this.path()).catch(error => {
+	async #findExisting() {
+		try {
+			await fs.stat(this.path());
+		} catch (error) {
 			if (error?.code === 'ENOENT') {
-				return this.download();
+				await this.#download();
+			} else {
+				throw new Error(`An error occurred while checking for the binary:\n${error.message}`);
 			}
-
-			throw error;
-		});
+		}
 	}
 
 	/**
 	 * Download files
 	 *
-	 * @api private
+	 * @returns {Promise<void>} - Resolves when the files are downloaded and set up.
 	 */
-	download() {
+	async #download() {
 		const files = osFilterObject(this.src() || []);
 
 		if (files.length === 0) {
-			return Promise.reject(
-				new Error(
-					'No binary found matching your system. It\'s probably not supported.',
-				),
-			);
+			throw new Error('No binary found matching your system. It\'s probably not supported.');
 		}
 
 		const urls = files.map(file => file.url);
 
-		return Promise.all(
+		const results = await Promise.all(
 			urls.map(url =>
-				download(url, this.dest(), {
+				downloader(url, this.dest(), {
 					extract: true,
 					decompress: {
-						strip: this.options.strip,
+						strip: this.#options.strip,
 					},
 				}),
 			),
-		).then(result => {
-			const resultFiles = result.flatMap((item, index) => {
-				if (Array.isArray(item)) {
-					return item.map(file => file.path);
+		);
+
+		const resultFiles = results.flatMap((item, index) => {
+			if (Array.isArray(item)) {
+				return item.map(file => file.path);
+			}
+
+			const parsedUrl = new URL(files[index].url);
+			const parsedPath = path.parse(parsedUrl.pathname);
+
+			return parsedPath.base;
+		});
+
+		await Promise.all(
+			resultFiles.map(file => {
+				const resolvedFile = path.join(this.dest(), file);
+				if (!resolvedFile.startsWith(path.resolve(this.dest()))) {
+					throw new Error('Invalid file path: Directory traversal detected');
 				}
 
-				const parsedUrl = new URL(files[index].url);
-				const parsedPath = path.parse(parsedUrl.pathname);
-
-				return parsedPath.base;
-			});
-
-			return Promise.all(
-				resultFiles.map(file => fs.chmod(path.join(this.dest(), file), 0o755)),
-			);
-		});
+				return fs.chmod(resolvedFile, 0o755);
+			}),
+		);
 	}
 }
