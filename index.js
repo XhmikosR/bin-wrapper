@@ -21,13 +21,19 @@ import semver from 'semver';
  */
 
 export default class BinWrapper {
+	#options;
+	#src;
+	#dest;
+	#use;
+	#version;
+
 	/**
 	 * @param {BinWrapperOptions} [options]
 	 */
 	constructor(options = {}) {
 		const {strip = 1, skipCheck = false, allowedProtocols = ['http:', 'https:']} = options;
 
-		this.options = {
+		this.#options = {
 			strip: Math.max(0, strip),
 			skipCheck,
 			allowedProtocols,
@@ -44,7 +50,7 @@ export default class BinWrapper {
 	 */
 	src(src, os, arch) {
 		if (arguments.length === 0) {
-			return this._src;
+			return this.#src;
 		}
 
 		let parsed;
@@ -54,12 +60,12 @@ export default class BinWrapper {
 			throw new Error(`Invalid URL: ${src}`);
 		}
 
-		if (!this.options.allowedProtocols.includes(parsed.protocol)) {
+		if (!this.#options.allowedProtocols.includes(parsed.protocol)) {
 			throw new Error(`Invalid protocol: ${parsed.protocol}`);
 		}
 
-		this._src ||= [];
-		this._src.push({url: src, os, arch});
+		this.#src ||= [];
+		this.#src.push({url: src, os, arch});
 
 		return this;
 	}
@@ -72,10 +78,10 @@ export default class BinWrapper {
 	 */
 	dest(dest) {
 		if (arguments.length === 0) {
-			return this._dest;
+			return this.#dest;
 		}
 
-		this._dest = dest;
+		this.#dest = dest;
 
 		return this;
 	}
@@ -88,10 +94,10 @@ export default class BinWrapper {
 	 */
 	use(bin) {
 		if (arguments.length === 0) {
-			return this._use;
+			return this.#use;
 		}
 
-		this._use = bin;
+		this.#use = bin;
 
 		return this;
 	}
@@ -104,14 +110,14 @@ export default class BinWrapper {
 	 */
 	version(range) {
 		if (arguments.length === 0) {
-			return this._version;
+			return this.#version;
 		}
 
 		if (!semver.validRange(range)) {
 			throw new Error(`Invalid version range: "${range}"`);
 		}
 
-		this._version = range;
+		this.#version = range;
 
 		return this;
 	}
@@ -132,13 +138,13 @@ export default class BinWrapper {
 	 * @returns {Promise<void>}
 	 */
 	async run(cmd = ['--version']) {
-		await this.findExisting();
+		await this.#findExisting();
 
-		if (this.options.skipCheck) {
+		if (this.#options.skipCheck) {
 			return;
 		}
 
-		await this.runCheck(cmd);
+		await this.#runCheck(cmd);
 	}
 
 	/**
@@ -146,9 +152,8 @@ export default class BinWrapper {
 	 *
 	 * @param {string[]} cmd - Arguments to pass to the binary.
 	 * @returns {Promise<void>}
-	 * @api private
 	 */
-	async runCheck(cmd) {
+	async #runCheck(cmd) {
 		const works = await binCheck(this.path(), cmd);
 		if (!works) {
 			throw new Error(`The "${this.path()}" binary doesn't seem to work correctly`);
@@ -163,14 +168,13 @@ export default class BinWrapper {
 	 * Check whether the binary exists; download it if not.
 	 *
 	 * @returns {Promise<void>}
-	 * @api private
 	 */
-	async findExisting() {
+	async #findExisting() {
 		try {
 			await fs.access(this.path());
 		} catch (error) {
 			if (error?.code === 'ENOENT') {
-				await this.download();
+				await this.#download();
 			} else {
 				throw error;
 			}
@@ -181,9 +185,8 @@ export default class BinWrapper {
 	 * Download files matching the current OS/arch and make them executable.
 	 *
 	 * @returns {Promise<void>}
-	 * @api private
 	 */
-	async download() {
+	async #download() {
 		const files = osFilterObject(this.src() || []);
 
 		if (files.length === 0) {
@@ -196,7 +199,7 @@ export default class BinWrapper {
 			downloader(url, this.dest(), {
 				extract: true,
 				decompress: {
-					strip: this.options.strip,
+					strip: this.#options.strip,
 				},
 			})));
 
