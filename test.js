@@ -4,7 +4,6 @@ import process from 'node:process';
 import {fileURLToPath} from 'node:url';
 import isexe from 'isexe';
 import nock from 'nock';
-import {pathExists} from 'path-exists';
 import {temporaryDirectory} from 'tempy';
 import test from 'ava';
 import BinWrapper from './index.js';
@@ -16,6 +15,15 @@ const fixture = path.join.bind(path, __dirname, 'fixtures');
 const binary = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle';
 
 const removeDir = async dir => fsP.rm(dir, {force: true, recursive: true});
+
+const pathExists = async path => {
+	try {
+		await fsP.access(path);
+		return true;
+	} catch {
+		return false;
+	}
+};
 
 test.beforeEach(() => {
 	nock('http://foo.com')
