@@ -1,7 +1,7 @@
 import {promises as fs} from 'node:fs';
 import path from 'node:path';
 import binCheck from '@xhmikosr/bin-check';
-import binVersionCheck from 'bin-version-check';
+import binaryVersionCheck from 'binary-version-check';
 import download from '@xhmikosr/downloader';
 import osFilterObject from '@xhmikosr/os-filter-obj';
 
@@ -121,13 +121,11 @@ export default class BinWrapper {
 	runCheck(cmd) {
 		return binCheck(this.path(), cmd).then(works => {
 			if (!works) {
-				throw new Error(
-					`The "${this.path()}" binary doesn't seem to work correctly`,
-				);
+				throw new Error(`The "${this.path()}" binary doesn't seem to work correctly`);
 			}
 
 			if (this.version()) {
-				return binVersionCheck(this.path(), this.version());
+				return binaryVersionCheck(this.path(), this.version());
 			}
 		});
 	}
@@ -156,25 +154,18 @@ export default class BinWrapper {
 		const files = osFilterObject(this.src() || []);
 
 		if (files.length === 0) {
-			return Promise.reject(
-				new Error(
-					'No binary found matching your system. It\'s probably not supported.',
-				),
-			);
+			return Promise.reject(new Error('No binary found matching your system. It\'s probably not supported.'));
 		}
 
 		const urls = files.map(file => file.url);
 
-		return Promise.all(
-			urls.map(url =>
-				download(url, this.dest(), {
-					extract: true,
-					decompress: {
-						strip: this.options.strip,
-					},
-				}),
-			),
-		).then(result => {
+		return Promise.all(urls.map(url =>
+			download(url, this.dest(), {
+				extract: true,
+				decompress: {
+					strip: this.options.strip,
+				},
+			}))).then(result => {
 			const resultFiles = result.flatMap((item, index) => {
 				if (Array.isArray(item)) {
 					return item.map(file => file.path);
@@ -186,9 +177,7 @@ export default class BinWrapper {
 				return parsedPath.base;
 			});
 
-			return Promise.all(
-				resultFiles.map(file => fs.chmod(path.join(this.dest(), file), 0o755)),
-			);
+			return Promise.all(resultFiles.map(file => fs.chmod(path.join(this.dest(), file), 0o755)));
 		});
 	}
 }
