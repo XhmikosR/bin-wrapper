@@ -41,7 +41,7 @@
 		"wrapper"
 	],
 	"dependencies": {
-		"@xhmikosr/bin-check": "^8.0.0",
+		"@xhmikosr/bin-check": "^8.1.0",
 		"@xhmikosr/downloader": "^16.0.1",
 		"@xhmikosr/os-filter-obj": "^3.0.0",
 		"binary-version-check": "^6.1.0"
