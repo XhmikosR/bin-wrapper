@@ -42,7 +42,7 @@
 	],
 	"dependencies": {
 		"@xhmikosr/bin-check": "^8.2.1",
-		"@xhmikosr/downloader": "^16.1.1",
+		"@xhmikosr/downloader": "^16.1.2",
 		"@xhmikosr/os-filter-obj": "^4.0.0",
 		"binary-version-check": "^6.1.0"
 	},
@@ -50,9 +50,9 @@
 		"ava": "^7.0.0",
 		"c8": "^11.0.0",
 		"isexe": "^4.0.0",
-		"nock": "^14.0.11",
+		"nock": "^14.0.12",
 		"tempy": "^3.2.0",
-		"xo": "^1.2.3"
+		"xo": "^2.0.2"
 	},
 	"xo": {
 		"rules": {
