@@ -254,3 +254,19 @@ test('default protocol allowlist rejects ftp but allows https', t => {
 	t.throws(() => bin.src('ftp://foo.com/bar.tar.gz'), {message: 'Invalid protocol: ftp:'});
 	t.notThrows(() => bin.src('https://foo.com/bar.tar.gz'));
 });
+
+test('run() rejects a non-array cmd early', async t => {
+	const temporaryDir = temporaryDirectory();
+	const bin = new BinWrapper()
+		.src('http://foo.com/gifsicle.tar.gz')
+		.dest(temporaryDir)
+		.use(binary);
+
+	await t.throwsAsync(bin.run('--version'), {
+		instanceOf: TypeError,
+		message: 'Invalid command: argument must be an array',
+	});
+
+	t.false(await pathExists(bin.path()));
+	await removeDir(temporaryDir);
+});
