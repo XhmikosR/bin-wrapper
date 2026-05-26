@@ -147,6 +147,10 @@ export default class BinWrapper {
 	 * @returns {Promise<void>}
 	 */
 	async run(cmd = ['--version']) {
+		if (!Array.isArray(cmd)) {
+			throw new TypeError('Invalid command: argument must be an array');
+		}
+
 		await this.#findExisting();
 
 		if (this.#options.skipCheck) {
