@@ -6,12 +6,22 @@ import download from '@xhmikosr/downloader';
 import osFilterObject from '@xhmikosr/os-filter-obj';
 
 /**
- * Initialize a new `BinWrapper`
- *
- * @param {Object} options
- * @api public
+ * @typedef {Object} BinWrapperOptions
+ * @property {number} [strip=1] - Number of leading paths to strip from the archive.
+ * @property {boolean} [skipCheck=false] - Skip binary checks.
  */
+
+/**
+ * @typedef {Object} SourceFile
+ * @property {string} url - The URL of the file.
+ * @property {string} [os] - The operating system the file is for.
+ * @property {string} [arch] - The architecture the file is for.
+ */
+
 export default class BinWrapper {
+	/**
+	 * @param {BinWrapperOptions} [options]
+	 */
 	constructor(options = {}) {
 		this.options = options;
 
@@ -26,10 +36,10 @@ export default class BinWrapper {
 	/**
 	 * Get or set files to download
 	 *
-	 * @param {String} src
-	 * @param {String} os
-	 * @param {String} arch
-	 * @api public
+	 * @param {string} [src] - The source URL of the file.
+	 * @param {string} [os] - The operating system the file is for.
+	 * @param {string} [arch] - The architecture the file is for.
+	 * @returns {SourceFile[]|undefined|this} - Returns the source files if no arguments are provided, otherwise returns `this`.
 	 */
 	src(src, os, arch) {
 		if (arguments.length === 0) {
@@ -45,8 +55,8 @@ export default class BinWrapper {
 	/**
 	 * Get or set the destination
 	 *
-	 * @param {String} dest
-	 * @api public
+	 * @param {string} [dest] - The destination path.
+	 * @returns {string|undefined|this} - Returns the destination if no arguments are provided, otherwise returns `this`.
 	 */
 	dest(dest) {
 		if (arguments.length === 0) {
@@ -60,8 +70,8 @@ export default class BinWrapper {
 	/**
 	 * Get or set the binary
 	 *
-	 * @param {String} bin
-	 * @api public
+	 * @param {string} [bin] - The binary name.
+	 * @returns {string|undefined|this} - Returns the binary name if no arguments are provided, otherwise returns `this`.
 	 */
 	use(bin) {
 		if (arguments.length === 0) {
@@ -75,8 +85,8 @@ export default class BinWrapper {
 	/**
 	 * Get or set a semver range to test the binary against
 	 *
-	 * @param {String} range
-	 * @api public
+	 * @param {string} [range] - The semver range.
+	 * @returns {string|undefined|this} - Returns the semver range if no arguments are provided, otherwise returns `this`.
 	 */
 	version(range) {
 		if (arguments.length === 0) {
@@ -90,17 +100,17 @@ export default class BinWrapper {
 	/**
 	 * Get path to the binary
 	 *
-	 * @api public
+	 * @returns {string} - The full path to the binary.
 	 */
 	path() {
 		return path.join(this.dest(), this.use());
 	}
 
 	/**
-	 * Run
+	 * Check for the binary and download it if missing, then optionally verify it works.
 	 *
-	 * @param {Array} cmd
-	 * @api public
+	 * @param {string[]} [cmd=['--version']] - Arguments passed to the binary when checking it.
+	 * @returns {Promise<void>}
 	 */
 	run(cmd = ['--version']) {
 		return this.findExisting().then(() => {
@@ -115,7 +125,8 @@ export default class BinWrapper {
 	/**
 	 * Run binary check
 	 *
-	 * @param {Array} cmd
+	 * @param {string[]} cmd - Arguments to pass to the binary.
+	 * @returns {Promise<void>}
 	 * @api private
 	 */
 	runCheck(cmd) {
@@ -131,8 +142,9 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Find existing files
+	 * Check whether the binary exists; download it if not.
 	 *
+	 * @returns {Promise<void>}
 	 * @api private
 	 */
 	findExisting() {
@@ -146,8 +158,9 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Download files
+	 * Download files matching the current OS/arch and make them executable.
 	 *
+	 * @returns {Promise<void>}
 	 * @api private
 	 */
 	download() {
