@@ -12,7 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const fixture = path.join.bind(path, __dirname, 'fixtures');
-const binary = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle';
+const isWindows = process.platform === 'win32';
+const binary = isWindows ? 'gifsicle.exe' : 'gifsicle';
 
 const removeDir = async dir => fsP.rm(dir, {force: true, recursive: true});
 
@@ -160,4 +161,29 @@ test('downloaded files are set to be executable', async t => {
 
 	await t.true(files.every(async file => isexe(path.join(bin.dest(), file))));
 	await removeDir(temporaryDir);
+});
+
+(isWindows ? test.skip : test)('do not chmod the destination directory for a basename-less URL', async t => {
+	const temporaryDir = temporaryDirectory();
+	await fsP.chmod(temporaryDir, 0o700);
+
+	// URL with no path basename -> bin-wrapper derives an empty name. The
+	// downloader still saves the file (here named via content-disposition).
+	nock('http://foo.com')
+		.get('/')
+		.reply(200, 'not-an-archive', {'content-disposition': 'attachment; filename="real.bin"'});
+
+	const bin = new BinWrapper({skipCheck: true})
+		.src('http://foo.com')
+		.dest(temporaryDir)
+		.use('real.bin');
+
+	try {
+		await bin.run();
+		// The destination directory's mode must be left untouched (not 0o755).
+		const stats = await fsP.stat(temporaryDir);
+		t.is(stats.mode & 0o777, 0o700); // eslint-disable-line no-bitwise
+	} finally {
+		await removeDir(temporaryDir);
+	}
 });
