@@ -209,3 +209,21 @@ test('tolerate a non-archive file saved under a different name than the URL', as
 		await removeDir(temporaryDir);
 	}
 });
+
+(isWindows ? test.skip : test)('re-throw non-ENOENT errors from findExisting', async t => {
+	const temporaryDir = temporaryDirectory();
+	try {
+		// A file where the dir should be makes fs.access() fail with ENOTDIR.
+		const destAsFile = path.join(temporaryDir, 'notadir');
+		await fsP.writeFile(destAsFile, '');
+
+		const bin = new BinWrapper()
+			.dest(destAsFile)
+			.use(binary);
+
+		const error = await t.throwsAsync(bin.run());
+		t.is(error.code, 'ENOTDIR');
+	} finally {
+		await removeDir(temporaryDir);
+	}
+});
