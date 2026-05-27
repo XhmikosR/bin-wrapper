@@ -187,3 +187,25 @@ test('downloaded files are set to be executable', async t => {
 		await removeDir(temporaryDir);
 	}
 });
+
+test('tolerate a non-archive file saved under a different name than the URL', async t => {
+	const temporaryDir = temporaryDirectory();
+
+	// URL basename is `download`, but the downloader saves `actual-bin` (from
+	// content-disposition), so bin-wrapper's guessed chmod target won't exist.
+	nock('http://foo.com')
+		.get('/download')
+		.reply(200, 'not-an-archive', {'content-disposition': 'attachment; filename="actual-bin"'});
+
+	const bin = new BinWrapper({skipCheck: true})
+		.src('http://foo.com/download')
+		.dest(temporaryDir)
+		.use('actual-bin');
+
+	try {
+		await t.notThrowsAsync(bin.run());
+		t.true(await pathExists(path.join(temporaryDir, 'actual-bin')));
+	} finally {
+		await removeDir(temporaryDir);
+	}
+});

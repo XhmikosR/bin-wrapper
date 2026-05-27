@@ -194,6 +194,16 @@ export default class BinWrapper {
 
 		await Promise.all(resultFiles
 			.filter(Boolean)
-			.map(file => fs.chmod(path.join(this.dest(), file), 0o755)));
+			.map(async file => {
+				try {
+					await fs.chmod(path.join(this.dest(), file), 0o755);
+				} catch (error) {
+					// We guess the saved name from the URL, but the downloader may
+					// have used a different one, so skip a missing file.
+					if (error?.code !== 'ENOENT') {
+						throw error;
+					}
+				}
+			}));
 	}
 }
