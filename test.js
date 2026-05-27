@@ -309,3 +309,48 @@ test('run() rejects a non-array cmd early', async t => {
 	t.false(await pathExists(bin.path()));
 	await removeDir(temporaryDir);
 });
+
+test('dest() rejects non-string and empty values', t => {
+	const bin = new BinWrapper();
+	const message = 'dest must be a non-empty string';
+	t.throws(() => bin.dest(null), {instanceOf: TypeError, message});
+	t.throws(() => bin.dest(123), {instanceOf: TypeError, message});
+	t.throws(() => bin.dest(true), {instanceOf: TypeError, message});
+	t.throws(() => bin.dest(''), {instanceOf: TypeError, message});
+	t.throws(() => bin.dest(undefined), {instanceOf: TypeError, message});
+});
+
+test('use() rejects non-string and empty values', t => {
+	const bin = new BinWrapper();
+	const message = 'use must be a non-empty string';
+	t.throws(() => bin.use(null), {instanceOf: TypeError, message});
+	t.throws(() => bin.use(123), {instanceOf: TypeError, message});
+	t.throws(() => bin.use(true), {instanceOf: TypeError, message});
+	t.throws(() => bin.use(''), {instanceOf: TypeError, message});
+	t.throws(() => bin.use(undefined), {instanceOf: TypeError, message});
+});
+
+test('path() throws when dest() is not set', t => {
+	const bin = new BinWrapper().use('foo');
+	t.throws(() => bin.path(), {message: 'dest() must be set before calling path()'});
+});
+
+test('path() throws when use() is not set', t => {
+	const bin = new BinWrapper().dest('tmp');
+	t.throws(() => bin.path(), {message: 'use() must be set before calling path()'});
+});
+
+test('run() throws when dest() is not set', async t => {
+	const bin = new BinWrapper().use(binary);
+	await t.throwsAsync(bin.run(), {message: 'dest() must be set before calling run()'});
+});
+
+test('run() throws when use() is not set', async t => {
+	const temporaryDir = temporaryDirectory();
+	try {
+		const bin = new BinWrapper().dest(temporaryDir);
+		await t.throwsAsync(bin.run(), {message: 'use() must be set before calling run()'});
+	} finally {
+		await removeDir(temporaryDir);
+	}
+});
