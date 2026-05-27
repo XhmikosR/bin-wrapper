@@ -33,11 +33,19 @@ export default class BinWrapper {
 	constructor(options = {}) {
 		const {strip = 1, skipCheck = false, allowedProtocols = ['http:', 'https:']} = options;
 
-		this.#options = {
-			strip: Math.max(0, strip),
-			skipCheck,
-			allowedProtocols,
-		};
+		if (!Number.isInteger(strip) || strip < 0) {
+			throw new TypeError('options.strip must be a non-negative integer');
+		}
+
+		if (typeof skipCheck !== 'boolean') {
+			throw new TypeError('options.skipCheck must be a boolean');
+		}
+
+		if (!Array.isArray(allowedProtocols) || allowedProtocols.length === 0 || !allowedProtocols.every(p => typeof p === 'string' && p.length > 1 && p.endsWith(':'))) {
+			throw new TypeError('options.allowedProtocols must be a non-empty array of protocol strings ending with ":" (e.g. "https:")');
+		}
+
+		this.#options = {strip, skipCheck, allowedProtocols};
 	}
 
 	/**
