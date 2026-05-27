@@ -188,9 +188,8 @@ export default class BinWrapper {
 			}
 
 			const parsedUrl = new URL(files[index].url);
-			const parsedPath = path.parse(parsedUrl.pathname);
 
-			return parsedPath.base;
+			return path.parse(parsedUrl.pathname).base;
 		});
 
 		await Promise.all(resultFiles.map(file => fs.chmod(path.join(this.dest(), file), 0o755)));
