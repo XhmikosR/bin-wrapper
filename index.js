@@ -2,7 +2,7 @@ import {promises as fs} from 'node:fs';
 import path from 'node:path';
 import binCheck from '@xhmikosr/bin-check';
 import binaryVersionCheck from 'binary-version-check';
-import download from '@xhmikosr/downloader';
+import downloader from '@xhmikosr/downloader';
 import osFilterObject from '@xhmikosr/os-filter-obj';
 
 /**
@@ -64,6 +64,7 @@ export default class BinWrapper {
 		}
 
 		this._dest = dest;
+
 		return this;
 	}
 
@@ -79,6 +80,7 @@ export default class BinWrapper {
 		}
 
 		this._use = bin;
+
 		return this;
 	}
 
@@ -94,6 +96,7 @@ export default class BinWrapper {
 		}
 
 		this._version = range;
+
 		return this;
 	}
 
@@ -112,14 +115,14 @@ export default class BinWrapper {
 	 * @param {string[]} [cmd=['--version']] - Arguments passed to the binary when checking it.
 	 * @returns {Promise<void>}
 	 */
-	run(cmd = ['--version']) {
-		return this.findExisting().then(() => {
-			if (this.options.skipCheck) {
-				return;
-			}
+	async run(cmd = ['--version']) {
+		await this.findExisting();
 
-			return this.runCheck(cmd);
-		});
+		if (this.options.skipCheck) {
+			return;
+		}
+
+		await this.runCheck(cmd);
 	}
 
 	/**
@@ -129,16 +132,15 @@ export default class BinWrapper {
 	 * @returns {Promise<void>}
 	 * @api private
 	 */
-	runCheck(cmd) {
-		return binCheck(this.path(), cmd).then(works => {
-			if (!works) {
-				throw new Error(`The "${this.path()}" binary doesn't seem to work correctly`);
-			}
+	async runCheck(cmd) {
+		const works = await binCheck(this.path(), cmd);
+		if (!works) {
+			throw new Error(`The "${this.path()}" binary doesn't seem to work correctly`);
+		}
 
-			if (this.version()) {
-				return binaryVersionCheck(this.path(), this.version());
-			}
-		});
+		if (this.version()) {
+			await binaryVersionCheck(this.path(), this.version());
+		}
 	}
 
 	/**
@@ -147,14 +149,16 @@ export default class BinWrapper {
 	 * @returns {Promise<void>}
 	 * @api private
 	 */
-	findExisting() {
-		return fs.stat(this.path()).catch(error => {
+	async findExisting() {
+		try {
+			await fs.stat(this.path());
+		} catch (error) {
 			if (error?.code === 'ENOENT') {
-				return this.download();
+				await this.download();
+			} else {
+				throw error;
 			}
-
-			throw error;
-		});
+		}
 	}
 
 	/**
@@ -163,34 +167,34 @@ export default class BinWrapper {
 	 * @returns {Promise<void>}
 	 * @api private
 	 */
-	download() {
+	async download() {
 		const files = osFilterObject(this.src() || []);
 
 		if (files.length === 0) {
-			return Promise.reject(new Error('No binary found matching your system. It\'s probably not supported.'));
+			throw new Error('No binary found matching your system. It\'s probably not supported.');
 		}
 
 		const urls = files.map(file => file.url);
 
-		return Promise.all(urls.map(url =>
-			download(url, this.dest(), {
+		const results = await Promise.all(urls.map(url =>
+			downloader(url, this.dest(), {
 				extract: true,
 				decompress: {
 					strip: this.options.strip,
 				},
-			}))).then(result => {
-			const resultFiles = result.flatMap((item, index) => {
-				if (Array.isArray(item)) {
-					return item.map(file => file.path);
-				}
+			})));
 
-				const parsedUrl = new URL(files[index].url);
-				const parsedPath = path.parse(parsedUrl.pathname);
+		const resultFiles = results.flatMap((item, index) => {
+			if (Array.isArray(item)) {
+				return item.map(file => file.path);
+			}
 
-				return parsedPath.base;
-			});
+			const parsedUrl = new URL(files[index].url);
+			const parsedPath = path.parse(parsedUrl.pathname);
 
-			return Promise.all(resultFiles.map(file => fs.chmod(path.join(this.dest(), file), 0o755)));
+			return parsedPath.base;
 		});
+
+		await Promise.all(resultFiles.map(file => fs.chmod(path.join(this.dest(), file), 0o755)));
 	}
 }
