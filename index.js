@@ -89,6 +89,10 @@ export default class BinWrapper {
 			return this.#dest;
 		}
 
+		if (typeof dest !== 'string' || dest.length === 0) {
+			throw new TypeError('dest must be a non-empty string');
+		}
+
 		this.#dest = dest;
 
 		return this;
@@ -103,6 +107,10 @@ export default class BinWrapper {
 	use(bin) {
 		if (arguments.length === 0) {
 			return this.#use;
+		}
+
+		if (typeof bin !== 'string' || bin.length === 0) {
+			throw new TypeError('use must be a non-empty string');
 		}
 
 		this.#use = bin;
@@ -136,6 +144,14 @@ export default class BinWrapper {
 	 * @returns {string} - The full path to the binary.
 	 */
 	path() {
+		if (!this.#dest) {
+			throw new Error('dest() must be set before calling path()');
+		}
+
+		if (!this.#use) {
+			throw new Error('use() must be set before calling path()');
+		}
+
 		return path.join(this.dest(), this.use());
 	}
 
@@ -148,6 +164,14 @@ export default class BinWrapper {
 	async run(cmd = ['--version']) {
 		if (!Array.isArray(cmd)) {
 			throw new TypeError('Invalid command: argument must be an array');
+		}
+
+		if (!this.#dest) {
+			throw new Error('dest() must be set before calling run()');
+		}
+
+		if (!this.#use) {
+			throw new Error('use() must be set before calling run()');
 		}
 
 		await this.#findExisting();
