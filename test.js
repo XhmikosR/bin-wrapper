@@ -42,6 +42,31 @@ test('expose a constructor', t => {
 	t.is(typeof BinWrapper, 'function');
 });
 
+test('constructor rejects invalid strip', t => {
+	const message = 'options.strip must be a non-negative integer';
+	t.throws(() => new BinWrapper({strip: 'foo'}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: true}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: Number.POSITIVE_INFINITY}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: Number.NaN}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: -1}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: 1.5}), {instanceOf: TypeError, message});
+});
+
+test('constructor rejects non-boolean skipCheck', t => {
+	t.throws(() => new BinWrapper({skipCheck: 1}), {instanceOf: TypeError, message: 'options.skipCheck must be a boolean'});
+	t.throws(() => new BinWrapper({skipCheck: 'yes'}), {instanceOf: TypeError, message: 'options.skipCheck must be a boolean'});
+});
+
+test('constructor rejects invalid allowedProtocols', t => {
+	const message = 'options.allowedProtocols must be a non-empty array of protocol strings ending with ":" (e.g. "https:")';
+	t.throws(() => new BinWrapper({allowedProtocols: []}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({allowedProtocols: 'https:'}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({allowedProtocols: [1, 2]}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({allowedProtocols: ['']}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({allowedProtocols: ['https']}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({allowedProtocols: [':']}), {instanceOf: TypeError, message});
+});
+
 test('add a source', t => {
 	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
 	t.is(bin.src()[0].url, 'http://foo.com/bar.tar.gz');
