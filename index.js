@@ -23,14 +23,12 @@ export default class BinWrapper {
 	 * @param {BinWrapperOptions} [options]
 	 */
 	constructor(options = {}) {
-		this.options = options;
+		const {strip = 1, skipCheck = false} = options;
 
-		if (this.options.strip <= 0) {
-			this.options.strip = 0;
-		// eslint-disable-next-line logical-assignment-operators
-		} else if (!this.options.strip) {
-			this.options.strip = 1;
-		}
+		this.options = {
+			strip: Math.max(0, strip),
+			skipCheck,
+		};
 	}
 
 	/**
