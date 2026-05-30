@@ -108,6 +108,15 @@ export default class BinWrapper {
 	}
 
 	/**
+	 * Get the source URL(s) matching the current OS and arch
+	 *
+	 * @returns {string[]} - URLs of the matching sources.
+	 */
+	resolved() {
+		return osFilterObject(this.src() || []).map(file => file.url);
+	}
+
+	/**
 	 * Check for the binary and download it if missing, then optionally verify it works.
 	 *
 	 * @param {string[]} [cmd=['--version']] - Arguments passed to the binary when checking it.
@@ -166,13 +175,11 @@ export default class BinWrapper {
 	 * @api private
 	 */
 	async download() {
-		const files = osFilterObject(this.src() || []);
+		const urls = this.resolved();
 
-		if (files.length === 0) {
+		if (urls.length === 0) {
 			throw new Error('No binary found matching your system. It\'s probably not supported.');
 		}
-
-		const urls = files.map(file => file.url);
 
 		const results = await Promise.all(urls.map(url =>
 			downloader(url, this.dest(), {
@@ -187,7 +194,7 @@ export default class BinWrapper {
 				return item.map(file => file.path);
 			}
 
-			const parsedUrl = new URL(files[index].url);
+			const parsedUrl = new URL(urls[index]);
 
 			return path.parse(parsedUrl.pathname).base;
 		});
