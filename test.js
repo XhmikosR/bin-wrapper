@@ -6,6 +6,7 @@ import {isexe} from 'isexe';
 import nock from 'nock';
 import {temporaryDirectory} from 'tempy';
 import test from 'ava';
+import decompressTarxz from '@felipecrs/decompress-tarxz';
 import BinWrapper from './index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,7 +36,9 @@ test.beforeEach(() => {
 		.get('/gifsicle-win32.tar.gz')
 		.replyWithFile(200, fixture('gifsicle-win32.tar.gz'))
 		.get('/test.js')
-		.replyWithFile(200, __filename);
+		.replyWithFile(200, __filename)
+		.get('/gifsicle-linux.tar.xz')
+		.replyWithFile(200, fixture('gifsicle-linux.tar.xz'));
 });
 
 test('expose a constructor', t => {
@@ -186,6 +189,30 @@ test('downloaded files are set to be executable', async t => {
 	} finally {
 		await removeDir(temporaryDir);
 	}
+});
+
+test('use custom decompress plugins', async t => {
+	const temporaryDir = temporaryDirectory();
+	const bin = new BinWrapper({skipCheck: true, decompress: {plugins: [decompressTarxz()]}})
+		.src('http://foo.com/gifsicle-linux.tar.xz')
+		.dest(temporaryDir)
+		.use('gifsicle');
+
+	await bin.run();
+	t.true(await pathExists(bin.path()));
+	await removeDir(temporaryDir);
+});
+
+test('forward decompress options to the downloader', async t => {
+	const temporaryDir = temporaryDirectory();
+	const bin = new BinWrapper({skipCheck: true, decompress: {filter: () => false}})
+		.src('http://foo.com/gifsicle.tar.gz')
+		.dest(temporaryDir)
+		.use(binary);
+
+	await bin.run();
+	t.false(await pathExists(bin.path()));
+	await removeDir(temporaryDir);
 });
 
 test('tolerate a non-archive file saved under a different name than the URL', async t => {

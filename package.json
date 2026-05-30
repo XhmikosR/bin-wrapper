@@ -47,6 +47,7 @@
 		"binary-version-check": "^6.1.0"
 	},
 	"devDependencies": {
+		"@felipecrs/decompress-tarxz": "^5.0.6",
 		"ava": "^7.0.0",
 		"c8": "^11.0.0",
 		"isexe": "^4.0.0",

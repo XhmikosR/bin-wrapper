@@ -63,6 +63,14 @@ Whether to skip the binary check or not.
 
 Strip a number of leading paths from file names on extraction.
 
+##### decompress
+
+* Type: `Object`
+* Default: `{}`
+
+Extra options forwarded to [`@xhmikosr/decompress`](https://github.com/XhmikosR/decompress) e.g. `plugins`.
+The `strip` key is ignored here; use the top-level `strip` option instead.
+
 ### .src(url, [os], [arch])
 
 Adds a source to download.

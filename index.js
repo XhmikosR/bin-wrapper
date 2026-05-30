@@ -9,6 +9,7 @@ import osFilterObject from '@xhmikosr/os-filter-obj';
  * @typedef {Object} BinWrapperOptions
  * @property {number} [strip=1] - Number of leading paths to strip from the archive.
  * @property {boolean} [skipCheck=false] - Skip binary checks.
+ * @property {object} [decompress={}] - Extra options forwarded to @xhmikosr/decompress (e.g. `{ plugins: [...] }`). The `strip` key here is ignored; use the top-level `strip` option.
  */
 
 /**
@@ -23,11 +24,12 @@ export default class BinWrapper {
 	 * @param {BinWrapperOptions} [options]
 	 */
 	constructor(options = {}) {
-		const {strip = 1, skipCheck = false} = options;
+		const {strip = 1, skipCheck = false, decompress = {}} = options;
 
 		this.options = {
 			strip: Math.max(0, strip),
 			skipCheck,
+			decompress: {...decompress},
 		};
 	}
 
@@ -178,6 +180,7 @@ export default class BinWrapper {
 			downloader(url, this.dest(), {
 				extract: true,
 				decompress: {
+					...this.options.decompress,
 					strip: this.options.strip,
 				},
 			})));
