@@ -75,6 +75,20 @@ test('get the binary path', t => {
 	t.is(bin.path(), path.join('tmp', 'foo'));
 });
 
+test('resolvedUrls returns an untagged source', t => {
+	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
+	t.deepEqual(bin.resolvedUrls(), ['http://foo.com/bar.tar.gz']);
+});
+
+test('resolvedUrls returns empty when no source matches the os', t => {
+	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz', 'nonexistent-os');
+	t.deepEqual(bin.resolvedUrls(), []);
+});
+
+test('resolvedUrls returns empty when no source is set', t => {
+	t.deepEqual(new BinWrapper().resolvedUrls(), []);
+});
+
 test('verify that a binary is working', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper()
