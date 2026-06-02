@@ -105,7 +105,7 @@ Define which file to use as the binary.
 
 Returns the full path to your binary.
 
-### .resolved()
+### .resolvedUrls()
 
 Returns an array of the source URLs matching the current OS and arch.
 

@@ -75,18 +75,18 @@ test('get the binary path', t => {
 	t.is(bin.path(), path.join('tmp', 'foo'));
 });
 
-test('resolve an untagged source', t => {
+test('resolvedUrls returns an untagged source', t => {
 	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
-	t.deepEqual(bin.resolved(), ['http://foo.com/bar.tar.gz']);
+	t.deepEqual(bin.resolvedUrls(), ['http://foo.com/bar.tar.gz']);
 });
 
-test('resolve nothing when no source matches the os', t => {
+test('resolvedUrls returns empty when no source matches the os', t => {
 	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz', 'nonexistent-os');
-	t.deepEqual(bin.resolved(), []);
+	t.deepEqual(bin.resolvedUrls(), []);
 });
 
-test('resolve nothing when no source is set', t => {
-	t.deepEqual(new BinWrapper().resolved(), []);
+test('resolvedUrls returns empty when no source is set', t => {
+	t.deepEqual(new BinWrapper().resolvedUrls(), []);
 });
 
 test('verify that a binary is working', async t => {

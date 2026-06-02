@@ -108,11 +108,11 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Get the source URL(s) matching the current OS and arch
+	 * Get the source URLs matching the current OS and arch
 	 *
-	 * @returns {string[]} - URLs of the matching sources.
+	 * @returns {string[]}
 	 */
-	resolved() {
+	resolvedUrls() {
 		return osFilterObject(this.src() || []).map(file => file.url);
 	}
 
@@ -175,7 +175,7 @@ export default class BinWrapper {
 	 * @api private
 	 */
 	async download() {
-		const urls = this.resolved();
+		const urls = this.resolvedUrls();
 
 		if (urls.length === 0) {
 			throw new Error('No binary found matching your system. It\'s probably not supported.');
