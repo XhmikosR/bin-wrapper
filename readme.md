@@ -71,7 +71,7 @@ Strip a number of leading paths from file names on extraction.
 Extra options forwarded to [`@xhmikosr/decompress`](https://github.com/XhmikosR/decompress) e.g. `plugins`.
 The `strip` key is ignored here; use the top-level `strip` option instead.
 
-### .src(url, [os], [arch])
+### .src(url, [os], [arch], [hash])
 
 Adds a source to download.
 
@@ -92,6 +92,17 @@ Tie the source to a specific OS.
 Type: `string`
 
 Tie the source to a specific arch.
+
+#### hash
+
+Type: `string`
+
+Expected `"<algorithm>:<hex>"` digest, verified against the download before extraction (see
+[`@xhmikosr/downloader`](https://github.com/XhmikosR/download#optionshash)).
+
+```js
+bin.src(`${base}/linux/x64/gifsicle`, 'linux', 'x64', 'sha256:9f86d0...');
+```
 
 ### .dest(destination)
 
