@@ -41,8 +41,8 @@
 		"wrapper"
 	],
 	"dependencies": {
-		"@xhmikosr/bin-check": "^8.2.1",
-		"@xhmikosr/downloader": "^16.2.0",
+		"@xhmikosr/bin-check": "^8.2.2",
+		"@xhmikosr/downloader": "^16.3.0",
 		"@xhmikosr/os-filter-obj": "^4.1.0",
 		"binary-version-check": "^6.1.0"
 	},
@@ -51,7 +51,7 @@
 		"ava": "^7.0.0",
 		"c8": "^11.0.0",
 		"isexe": "^4.0.0",
-		"nock": "^14.0.15",
+		"nock": "^14.0.16",
 		"tempy": "^3.2.0",
 		"xo": "^2.0.2"
 	},
@@ -59,5 +59,8 @@
 		"rules": {
 			"unicorn/prevent-abbreviations": "off"
 		}
+	},
+	"allowScripts": {
+		"unrs-resolver@1.11.1": true
 	}
 }
