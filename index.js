@@ -17,6 +17,7 @@ import osFilterObject from '@xhmikosr/os-filter-obj';
  * @property {string} url - The URL of the file.
  * @property {string} [os] - The operating system the file is for.
  * @property {string} [arch] - The architecture the file is for.
+ * @property {string} [hash] - Expected hash as `"<algorithm>:<hex>"`, verified after download.
  */
 
 export default class BinWrapper {
@@ -39,15 +40,21 @@ export default class BinWrapper {
 	 * @param {string} [src] - The source URL of the file.
 	 * @param {string} [os] - The operating system the file is for.
 	 * @param {string} [arch] - The architecture the file is for.
+	 * @param {string} [hash] - Expected hash as `"<algorithm>:<hex>"`, verified after download.
 	 * @returns {SourceFile[]|undefined|this} - Returns the source files if no arguments are provided, otherwise returns `this`.
 	 */
-	src(src, os, arch) {
+	src(src, os, arch, hash) {
 		if (arguments.length === 0) {
 			return this._src;
 		}
 
 		this._src ||= [];
-		this._src.push({url: src, os, arch});
+		this._src.push({
+			url: src,
+			os,
+			arch,
+			hash,
+		});
 
 		return this;
 	}
@@ -110,12 +117,21 @@ export default class BinWrapper {
 	}
 
 	/**
+	 * Filter the configured sources down to the ones matching the current OS and arch
+	 *
+	 * @returns {SourceFile[]}
+	 */
+	#resolveSources() {
+		return osFilterObject(this.src() || []);
+	}
+
+	/**
 	 * Get the source URLs matching the current OS and arch
 	 *
 	 * @returns {string[]}
 	 */
 	resolvedUrls() {
-		return osFilterObject(this.src() || []).map(file => file.url);
+		return this.#resolveSources().map(file => file.url);
 	}
 
 	/**
@@ -177,15 +193,16 @@ export default class BinWrapper {
 	 * @api private
 	 */
 	async download() {
-		const urls = this.resolvedUrls();
+		const sources = this.#resolveSources();
 
-		if (urls.length === 0) {
+		if (sources.length === 0) {
 			throw new Error('No binary found matching your system. It\'s probably not supported.');
 		}
 
-		const results = await Promise.all(urls.map(url =>
-			downloader(url, this.dest(), {
+		const results = await Promise.all(sources.map(source =>
+			downloader(source.url, this.dest(), {
 				extract: true,
+				hash: source.hash,
 				decompress: {
 					...this.options.decompress,
 					strip: this.options.strip,
@@ -197,7 +214,7 @@ export default class BinWrapper {
 				return item.map(file => file.path);
 			}
 
-			const parsedUrl = new URL(urls[index]);
+			const parsedUrl = new URL(sources[index].url);
 
 			return path.parse(parsedUrl.pathname).base;
 		});

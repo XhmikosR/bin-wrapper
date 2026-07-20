@@ -57,6 +57,7 @@
 	},
 	"xo": {
 		"rules": {
+			"require-unicode-regexp": "off",
 			"unicorn/prevent-abbreviations": "off"
 		}
 	},

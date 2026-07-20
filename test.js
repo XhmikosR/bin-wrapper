@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import fs, {promises as fsP} from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -90,6 +91,32 @@ test('resolvedUrls returns empty when no source matches the os', t => {
 
 test('resolvedUrls returns empty when no source is set', t => {
 	t.deepEqual(new BinWrapper().resolvedUrls(), []);
+});
+
+test('download a source matching its hash', async t => {
+	const temporaryDir = temporaryDirectory();
+	const archive = await fsP.readFile(fixture(`gifsicle-${process.platform}.tar.gz`));
+	const hash = `sha256:${createHash('sha256').update(archive).digest('hex')}`;
+	const bin = new BinWrapper({skipCheck: true})
+		.src('http://foo.com/gifsicle.tar.gz', undefined, undefined, hash)
+		.dest(temporaryDir)
+		.use(binary);
+
+	await bin.run();
+	t.true(await pathExists(bin.path()));
+	await removeDir(temporaryDir);
+});
+
+test('throw when a source does not match its hash', async t => {
+	const temporaryDir = temporaryDirectory();
+	const wrongHash = `sha256:${'0'.repeat(64)}`;
+	const bin = new BinWrapper({skipCheck: true})
+		.src('http://foo.com/gifsicle.tar.gz', undefined, undefined, wrongHash)
+		.dest(temporaryDir)
+		.use(binary);
+
+	await t.throwsAsync(bin.run(), {message: /Hash mismatch/});
+	await removeDir(temporaryDir);
 });
 
 test('verify that a binary is working', async t => {
