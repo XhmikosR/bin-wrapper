@@ -255,6 +255,28 @@ test('downloaded files are set to be executable', async t => {
 	}
 });
 
+(isWindows ? test.skip : test)('makes the target binary executable even when saved under an unguessed name', async t => {
+	const temporaryDir = temporaryDirectory();
+
+	// URL basename is `dl`, but the file saves as `mybin` (content-disposition), so the
+	// URL-derived guess misses it; chmod must still reach the used binary
+	nock('http://foo.com')
+		.get('/dl')
+		.reply(200, '#!/bin/sh\necho hi\n', {'content-disposition': 'attachment; filename="mybin"'});
+
+	const bin = new BinWrapper({skipCheck: true})
+		.src('http://foo.com/dl')
+		.dest(temporaryDir)
+		.use('mybin');
+
+	try {
+		await bin.run();
+		t.true(await isexe(path.join(temporaryDir, 'mybin')));
+	} finally {
+		await removeDir(temporaryDir);
+	}
+});
+
 test('use custom decompress plugins', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({skipCheck: true, decompress: {plugins: [decompressTarxz()]}})

@@ -224,14 +224,16 @@ export default class BinWrapper {
 			return path.parse(parsedUrl.pathname).base;
 		});
 
-		await Promise.all(resultFiles
+		// Also chmod the binary we're after, in case it was saved under a name we couldn't guess
+		const filesToChmod = [...new Set([...resultFiles, this.use()])];
+
+		await Promise.all(filesToChmod
 			.filter(Boolean)
 			.map(async file => {
 				try {
 					await fs.chmod(path.join(this.dest(), file), 0o755);
 				} catch (error) {
-					// We guess the saved name from the URL, but the downloader may
-					// have used a different one, so skip a missing file.
+					// The saved name may differ from our guess, so skip a missing file
 					if (error?.code !== 'ENOENT') {
 						throw error;
 					}
