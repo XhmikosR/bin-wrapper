@@ -164,6 +164,29 @@ test('download files even if they are not used', async t => {
 	await removeDir(bin.dest());
 });
 
+test('downloads sources sequentially so writes do not race', async t => {
+	const temporaryDir = temporaryDirectory();
+
+	// Both save as `same.bin`; `/one` is delayed, so a concurrent run would let `/two`
+	// win but a sequential one (one then two) deterministically ends on `/two`.
+	nock('http://seq.test')
+		.get('/one').delay(100).reply(200, 'AAAA', {'content-disposition': 'attachment; filename="same.bin"'})
+		.get('/two').reply(200, 'BBBB', {'content-disposition': 'attachment; filename="same.bin"'});
+
+	const bin = new BinWrapper({strip: 0, skipCheck: true})
+		.src('http://seq.test/one')
+		.src('http://seq.test/two')
+		.dest(temporaryDir)
+		.use('same.bin');
+
+	try {
+		await bin.run();
+		t.is(await fsP.readFile(path.join(temporaryDir, 'same.bin'), 'utf8'), 'BBBB');
+	} finally {
+		await removeDir(temporaryDir);
+	}
+});
+
 test('skip running binary check', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({skipCheck: true})

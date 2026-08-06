@@ -199,15 +199,20 @@ export default class BinWrapper {
 			throw new Error('No binary found matching your system. It\'s probably not supported.');
 		}
 
-		const results = await Promise.all(sources.map(source =>
-			downloader(source.url, this.dest(), {
+		// Download one source at a time so two can't race writes to the same file
+		const results = [];
+		for (const source of sources) {
+			// eslint-disable-next-line no-await-in-loop
+			const result = await downloader(source.url, this.dest(), {
 				extract: true,
 				hash: source.hash,
 				decompress: {
 					...this.options.decompress,
 					strip: this.options.strip,
 				},
-			})));
+			});
+			results.push(result);
+		}
 
 		const resultFiles = results.flatMap((item, index) => {
 			if (Array.isArray(item)) {
