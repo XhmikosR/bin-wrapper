@@ -7,20 +7,22 @@ import osFilterObject from '@xhmikosr/os-filter-obj';
 import semver from 'semver';
 
 /**
- * @typedef {Object} BinWrapperOptions
- * @property {number} [strip=1] - Number of leading paths to strip from the archive.
- * @property {boolean} [skipCheck=false] - Skip binary checks.
- * @property {object} [decompress={}] - Extra options forwarded to @xhmikosr/decompress (e.g. `{ plugins: [...] }`). The `strip` key here is ignored; use the top-level `strip` option.
- * @property {string[]} [allowedProtocols=['http:','https:']] - URL protocols accepted by `src()`.
+ @typedef {object} BinWrapperOptions
+ @property {number} [strip=1] - Number of leading paths to strip from the archive.
+ @property {boolean} [skipCheck=false] - Skip binary checks.
+ @property {object} [decompress={}] - Extra options forwarded to `@xhmikosr/decompress` (e.g. `{ plugins: [...] }`). The `strip` key here is ignored; use the top-level `strip` option.
+ @property {string[]} [allowedProtocols=['http:','https:']] - URL protocols accepted by `src()`.
  */
 
 /**
- * @typedef {Object} SourceFile
- * @property {string} url - The URL of the file.
- * @property {string} [os] - The operating system the file is for.
- * @property {string} [arch] - The architecture the file is for.
- * @property {string} [hash] - Expected hash as `"<algorithm>:<hex>"`, verified after download.
+ @typedef {object} SourceFile
+ @property {string} url - The URL of the file.
+ @property {string} [os] - The operating system the file is for.
+ @property {string} [arch] - The architecture the file is for.
+ @property {string} [hash] - Expected hash as `"<algorithm>:<hex>"`, verified after download.
  */
+
+const isProtocol = protocol => typeof protocol === 'string' && protocol.length > 1 && protocol.endsWith(':');
 
 export default class BinWrapper {
 	#options;
@@ -30,12 +32,14 @@ export default class BinWrapper {
 	#version;
 
 	/**
-	 * @param {BinWrapperOptions} [options]
+	 Create a new instance.
+
+	 @param {BinWrapperOptions} [options] - Options for this instance.
 	 */
 	constructor(options = {}) {
 		const {strip = 1, skipCheck = false, decompress = {}, allowedProtocols = ['http:', 'https:']} = options;
 
-		if (!Number.isInteger(strip) || strip < 0) {
+		if (!Number.isSafeInteger(strip) || strip < 0) {
 			throw new TypeError('options.strip must be a non-negative integer');
 		}
 
@@ -43,7 +47,7 @@ export default class BinWrapper {
 			throw new TypeError('options.skipCheck must be a boolean');
 		}
 
-		if (!Array.isArray(allowedProtocols) || allowedProtocols.length === 0 || !allowedProtocols.every(p => typeof p === 'string' && p.length > 1 && p.endsWith(':'))) {
+		if (!Array.isArray(allowedProtocols) || allowedProtocols.length === 0 || allowedProtocols.some(protocol => !isProtocol(protocol))) {
 			throw new TypeError('options.allowedProtocols must be a non-empty array of protocol strings ending with ":" (e.g. "https:")');
 		}
 
@@ -56,13 +60,13 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Get or set files to download
-	 *
-	 * @param {string} [src] - The source URL of the file.
-	 * @param {string} [os] - The operating system the file is for.
-	 * @param {string} [arch] - The architecture the file is for.
-	 * @param {string} [hash] - Expected hash as `"<algorithm>:<hex>"`, verified after download.
-	 * @returns {SourceFile[]|undefined|this} - Returns the source files if no arguments are provided, otherwise returns `this`.
+	 Get or set files to download
+
+	 @param {string} [src] - The source URL of the file.
+	 @param {string} [os] - The operating system the file is for.
+	 @param {string} [arch] - The architecture the file is for.
+	 @param {string} [hash] - Expected hash as `"<algorithm>:<hex>"`, verified after download.
+	 @returns {SourceFile[]|undefined|this} - Returns the source files if no arguments are provided, otherwise returns `this`.
 	 */
 	src(src, os, arch, hash) {
 		if (arguments.length === 0) {
@@ -92,10 +96,10 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Get or set the destination
-	 *
-	 * @param {string} [dest] - The destination path.
-	 * @returns {string|undefined|this} - Returns the destination if no arguments are provided, otherwise returns `this`.
+	 Get or set the destination
+
+	 @param {string} [dest] - The destination path.
+	 @returns {string|undefined|this} - Returns the destination if no arguments are provided, otherwise returns `this`.
 	 */
 	dest(dest) {
 		if (arguments.length === 0) {
@@ -112,10 +116,10 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Get or set the binary
-	 *
-	 * @param {string} [bin] - The binary name.
-	 * @returns {string|undefined|this} - Returns the binary name if no arguments are provided, otherwise returns `this`.
+	 Get or set the binary
+
+	 @param {string} [bin] - The binary name.
+	 @returns {string|undefined|this} - Returns the binary name if no arguments are provided, otherwise returns `this`.
 	 */
 	use(bin) {
 		if (arguments.length === 0) {
@@ -132,10 +136,10 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Get or set a semver range to test the binary against
-	 *
-	 * @param {string} [range] - The semver range.
-	 * @returns {string|undefined|this} - Returns the semver range if no arguments are provided, otherwise returns `this`.
+	 Get or set a semver range to test the binary against
+
+	 @param {string} [range] - The semver range.
+	 @returns {string|undefined|this} - Returns the semver range if no arguments are provided, otherwise returns `this`.
 	 */
 	version(range) {
 		if (arguments.length === 0) {
@@ -152,9 +156,9 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Get path to the binary
-	 *
-	 * @returns {string} - The full path to the binary.
+	 Get path to the binary
+
+	 @returns {string} - The full path to the binary.
 	 */
 	path() {
 		if (!this.#dest) {
@@ -169,28 +173,19 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Filter the configured sources down to the ones matching the current OS and arch
-	 *
-	 * @returns {SourceFile[]}
-	 */
-	#resolveSources() {
-		return osFilterObject(this.src() || []);
-	}
+	 Get the source URLs matching the current OS and arch
 
-	/**
-	 * Get the source URLs matching the current OS and arch
-	 *
-	 * @returns {string[]}
+	 @returns {string[]} The matching source URLs.
 	 */
 	resolvedUrls() {
 		return this.#resolveSources().map(file => file.url);
 	}
 
 	/**
-	 * Check for the binary and download it if missing, then optionally verify it works.
-	 *
-	 * @param {string[]} [cmd=['--version']] - Arguments passed to the binary when checking it.
-	 * @returns {Promise<void>}
+	 Check for the binary and download it if missing, then optionally verify it works.
+
+	 @param {string[]} [cmd=['--version']] - Arguments passed to the binary when checking it.
+	 @returns {Promise<void>}
 	 */
 	async run(cmd = ['--version']) {
 		if (!Array.isArray(cmd)) {
@@ -215,10 +210,19 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Run binary check
-	 *
-	 * @param {string[]} cmd - Arguments to pass to the binary.
-	 * @returns {Promise<void>}
+	 Filter the configured sources down to the ones matching the current OS and arch
+
+	 @returns {SourceFile[]} The matching source files.
+	 */
+	#resolveSources() {
+		return osFilterObject(this.src() || []);
+	}
+
+	/**
+	 Run binary check
+
+	 @param {string[]} cmd - Arguments to pass to the binary.
+	 @returns {Promise<void>}
 	 */
 	async #runCheck(cmd) {
 		const works = await binCheck(this.path(), cmd);
@@ -232,9 +236,9 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Check whether the binary exists; download it if not.
-	 *
-	 * @returns {Promise<void>}
+	 Check whether the binary exists; download it if not.
+
+	 @returns {Promise<void>}
 	 */
 	async #findExisting() {
 		try {
@@ -249,9 +253,9 @@ export default class BinWrapper {
 	}
 
 	/**
-	 * Download files matching the current OS/arch and make them executable.
-	 *
-	 * @returns {Promise<void>}
+	 Download files matching the current OS/arch and make them executable.
+
+	 @returns {Promise<void>}
 	 */
 	async #download() {
 		const sources = this.#resolveSources();

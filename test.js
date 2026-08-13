@@ -19,9 +19,9 @@ const binary = isWindows ? 'gifsicle.exe' : 'gifsicle';
 
 const removeDir = async dir => fsP.rm(dir, {force: true, recursive: true});
 
-const pathExists = async path => {
+const pathExists = async thePath => {
 	try {
-		await fsP.access(path);
+		await fsP.access(thePath);
 		return true;
 	} catch {
 		return false;
@@ -29,7 +29,7 @@ const pathExists = async path => {
 };
 
 test.beforeEach(() => {
-	nock('http://foo.com')
+	nock('https://foo.com')
 		.get('/gifsicle.tar.gz')
 		.replyWithFile(200, fixture(`gifsicle-${process.platform}.tar.gz`))
 		.get('/gifsicle-darwin.tar.gz')
@@ -50,8 +50,8 @@ test('constructor rejects invalid strip', t => {
 	const message = 'options.strip must be a non-negative integer';
 	t.throws(() => new BinWrapper({strip: 'foo'}), {instanceOf: TypeError, message});
 	t.throws(() => new BinWrapper({strip: true}), {instanceOf: TypeError, message});
-	t.throws(() => new BinWrapper({strip: Number.POSITIVE_INFINITY}), {instanceOf: TypeError, message});
-	t.throws(() => new BinWrapper({strip: Number.NaN}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: Infinity}), {instanceOf: TypeError, message});
+	t.throws(() => new BinWrapper({strip: NaN}), {instanceOf: TypeError, message});
 	t.throws(() => new BinWrapper({strip: -1}), {instanceOf: TypeError, message});
 	t.throws(() => new BinWrapper({strip: 1.5}), {instanceOf: TypeError, message});
 });
@@ -72,12 +72,12 @@ test('constructor rejects invalid allowedProtocols', t => {
 });
 
 test('add a source', t => {
-	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
-	t.is(bin.src()[0].url, 'http://foo.com/bar.tar.gz');
+	const bin = new BinWrapper().src('https://foo.com/bar.tar.gz');
+	t.is(bin.src()[0].url, 'https://foo.com/bar.tar.gz');
 });
 
 test('add a source to a specific os', t => {
-	const bin = new BinWrapper().src('http://foo.com', process.platform);
+	const bin = new BinWrapper().src('https://foo.com', process.platform);
 	t.is(bin.src()[0].os, process.platform);
 });
 
@@ -105,12 +105,12 @@ test('get the binary path', t => {
 });
 
 test('resolvedUrls returns an untagged source', t => {
-	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz');
-	t.deepEqual(bin.resolvedUrls(), ['http://foo.com/bar.tar.gz']);
+	const bin = new BinWrapper().src('https://foo.com/bar.tar.gz');
+	t.deepEqual(bin.resolvedUrls(), ['https://foo.com/bar.tar.gz']);
 });
 
 test('resolvedUrls returns empty when no source matches the os', t => {
-	const bin = new BinWrapper().src('http://foo.com/bar.tar.gz', 'nonexistent-os');
+	const bin = new BinWrapper().src('https://foo.com/bar.tar.gz', 'nonexistent-os');
 	t.deepEqual(bin.resolvedUrls(), []);
 });
 
@@ -123,7 +123,7 @@ test('download a source matching its hash', async t => {
 	const archive = await fsP.readFile(fixture(`gifsicle-${process.platform}.tar.gz`));
 	const hash = `sha256:${createHash('sha256').update(archive).digest('hex')}`;
 	const bin = new BinWrapper({skipCheck: true})
-		.src('http://foo.com/gifsicle.tar.gz', undefined, undefined, hash)
+		.src('https://foo.com/gifsicle.tar.gz', undefined, undefined, hash)
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -136,7 +136,7 @@ test('throw when a source does not match its hash', async t => {
 	const temporaryDir = temporaryDirectory();
 	const wrongHash = `sha256:${'0'.repeat(64)}`;
 	const bin = new BinWrapper({skipCheck: true})
-		.src('http://foo.com/gifsicle.tar.gz', undefined, undefined, wrongHash)
+		.src('https://foo.com/gifsicle.tar.gz', undefined, undefined, wrongHash)
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -147,7 +147,7 @@ test('throw when a source does not match its hash', async t => {
 test('verify that a binary is working', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper()
-		.src('http://foo.com/gifsicle.tar.gz')
+		.src('https://foo.com/gifsicle.tar.gz')
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -159,7 +159,7 @@ test('verify that a binary is working', async t => {
 test('meet the desired version', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper()
-		.src('http://foo.com/gifsicle.tar.gz')
+		.src('https://foo.com/gifsicle.tar.gz')
 		.dest(temporaryDir)
 		.use(binary)
 		.version('>=1.71');
@@ -172,9 +172,9 @@ test('meet the desired version', async t => {
 test('download files even if they are not used', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({strip: 0, skipCheck: true})
-		.src('http://foo.com/gifsicle-darwin.tar.gz')
-		.src('http://foo.com/gifsicle-win32.tar.gz')
-		.src('http://foo.com/test.js')
+		.src('https://foo.com/gifsicle-darwin.tar.gz')
+		.src('https://foo.com/gifsicle-win32.tar.gz')
+		.src('https://foo.com/test.js')
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -192,7 +192,7 @@ test('download files even if they are not used', async t => {
 test('skip running binary check', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({skipCheck: true})
-		.src('http://foo.com/gifsicle.tar.gz')
+		.src('https://foo.com/gifsicle.tar.gz')
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -218,9 +218,9 @@ test('error if no binary is found and no source is provided', async t => {
 test('downloaded files are set to be executable', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({strip: 0, skipCheck: true})
-		.src('http://foo.com/gifsicle-darwin.tar.gz')
-		.src('http://foo.com/gifsicle-win32.tar.gz')
-		.src('http://foo.com/test.js')
+		.src('https://foo.com/gifsicle-darwin.tar.gz')
+		.src('https://foo.com/gifsicle-win32.tar.gz')
+		.src('https://foo.com/test.js')
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -238,12 +238,12 @@ test('downloaded files are set to be executable', async t => {
 
 	// URL with no path basename -> bin-wrapper derives an empty name. The
 	// downloader still saves the file (here named via content-disposition).
-	nock('http://foo.com')
+	nock('https://foo.com')
 		.get('/')
 		.reply(200, 'not-an-archive', {'content-disposition': 'attachment; filename="real.bin"'});
 
 	const bin = new BinWrapper({skipCheck: true})
-		.src('http://foo.com')
+		.src('https://foo.com')
 		.dest(temporaryDir)
 		.use('real.bin');
 
@@ -260,7 +260,7 @@ test('downloaded files are set to be executable', async t => {
 test('use custom decompress plugins', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({skipCheck: true, decompress: {plugins: [decompressTarxz()]}})
-		.src('http://foo.com/gifsicle-linux.tar.xz')
+		.src('https://foo.com/gifsicle-linux.tar.xz')
 		.dest(temporaryDir)
 		.use('gifsicle');
 
@@ -272,7 +272,7 @@ test('use custom decompress plugins', async t => {
 test('forward decompress options to the downloader', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper({skipCheck: true, decompress: {filter: () => false}})
-		.src('http://foo.com/gifsicle.tar.gz')
+		.src('https://foo.com/gifsicle.tar.gz')
 		.dest(temporaryDir)
 		.use(binary);
 
@@ -286,12 +286,12 @@ test('tolerate a non-archive file saved under a different name than the URL', as
 
 	// URL basename is `download`, but the downloader saves `actual-bin` (from
 	// content-disposition), so bin-wrapper's guessed chmod target won't exist.
-	nock('http://foo.com')
+	nock('https://foo.com')
 		.get('/download')
 		.reply(200, 'not-an-archive', {'content-disposition': 'attachment; filename="actual-bin"'});
 
 	const bin = new BinWrapper({skipCheck: true})
-		.src('http://foo.com/download')
+		.src('https://foo.com/download')
 		.dest(temporaryDir)
 		.use('actual-bin');
 
@@ -351,7 +351,7 @@ test('default protocol allowlist rejects ftp but allows https', t => {
 test('run() rejects a non-array cmd early', async t => {
 	const temporaryDir = temporaryDirectory();
 	const bin = new BinWrapper()
-		.src('http://foo.com/gifsicle.tar.gz')
+		.src('https://foo.com/gifsicle.tar.gz')
 		.dest(temporaryDir)
 		.use(binary);
 

@@ -78,7 +78,7 @@ The `strip` key is ignored here; use the top-level `strip` option instead.
 
 URL protocols accepted by `.src()`. Pass a custom list (e.g. `['https:']` to enforce TLS, or include `'ftp:'` for a private mirror) to override the default. Protocols must be in [URL protocol form](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol), including the trailing colon.
 
-### .src(url, [os], [arch], [hash])
+### .src(url, \[os\], \[arch\], \[hash\])
 
 Adds a source to download.
 
@@ -144,7 +144,7 @@ Type: `string`
 Define a [semver range](https://github.com/npm/node-semver#ranges) to check
 the binary against.
 
-### .run([arguments])
+### .run(\[arguments\])
 
 Runs the search for the binary. If no binary is found it will download the file
 using the URL provided in `.src()`.
