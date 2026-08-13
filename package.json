@@ -16,7 +16,7 @@
 		"url": "https://github.com/kevva"
 	},
 	"engines": {
-		"node": ">=20"
+		"node": ">=22"
 	},
 	"scripts": {
 		"ava": "ava",
@@ -48,13 +48,13 @@
 		"semver": "^7.8.5"
 	},
 	"devDependencies": {
-		"@felipecrs/decompress-tarxz": "^5.0.6",
-		"ava": "^7.0.0",
+		"@felipecrs/decompress-tarxz": "^6.0.0",
+		"ava": "^8.0.1",
 		"c8": "^12.0.0",
 		"isexe": "^4.0.0",
 		"nock": "^14.0.17",
 		"tempy": "^3.2.0",
-		"xo": "^2.0.2"
+		"xo": "^4.0.0"
 	},
 	"xo": {
 		"rules": {
@@ -63,6 +63,6 @@
 		}
 	},
 	"allowScripts": {
-		"unrs-resolver@1.11.1": true
+		"unrs-resolver@1.12.2": true
 	}
 }
