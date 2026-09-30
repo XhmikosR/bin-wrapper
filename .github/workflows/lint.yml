@@ -1,15 +1,22 @@
 name: Lint
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 env:
   FORCE_COLOR: 2
   NODE: 24 # The Node.js version to run lint on
 
+permissions:
+  contents: read
+
 jobs:
   run:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Clone repository
